@@ -9,6 +9,7 @@ let lock = false;
 
 const QUEUE = [];
 const PREFIX = '!song';
+const DEFAULT_VOLUME = 0.1;
 
 bot.on('message', async message => {
   if (!lock) {
@@ -38,6 +39,7 @@ bot.on('message', async message => {
         const foundSong = ytdl(searchResultUrl, { filter: 'audioonly' })
         const dispatcher = connection.play(foundSong);
 
+        dispatcher.setVolume(DEFAULT_VOLUME);
         dispatcher.resume();
         dispatcher.on('finish', () => {
           console.log('Song done!');
