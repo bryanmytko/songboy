@@ -3,52 +3,101 @@ require('dotenv').config();
 const ytdl = require('ytdl-core');
 const ytsr = require('ytsr');
 const Discord = require('discord.js');
+
 const bot = new Discord.Client();
+const queue = new Map();
 
-let lock = false;
-
-const QUEUE = [];
-const PREFIX = '!song';
+const PREFIX = '!';
 const DEFAULT_VOLUME = 0.1;
 
+bot.once('ready', console.log('SongBoy online!'));
+
 bot.on('message', async message => {
-  if (!lock) {
-    lock = true;
-    const voiceChannel = message.member.voice.channel;
-    const textChannel = message.channel;
+  const serverQueue = queue.get(message.guild.id);
+  const textChannel = message.channel;
 
-    if(voiceChannel) {
-      const msg = message.content;
+  if(!message.content.startsWith(PREFIX)) return;
 
-      if(msg.startsWith('!stop')) {
-        // const connection = await voiceChannel.join();
-        // const dispatcher = connection.play();
-        // dispatcher.pause();
-        // dispatcher.destroy();
-      }
+  const commandRegex = new RegExp(`${PREFIX}([\\w\\-]+)(.+)`, 'mi');
+  const command = message.content.match(commandRegex)[1];
+  const params = message.content.match(commandRegex)[2].trim();
 
-      if(msg.startsWith(PREFIX)) {
-        const searchStr = msg.split(PREFIX)[1].trim();
-        const searchResults = await ytsr(searchStr);
-        // @TODO check .items[0].duration for less than 10 minutes or something.
-        const searchResultUrl = searchResults.items[0].link;
-
-        textChannel.send(`Playing "${searchResults.items[0].title}"`);
-
-        const connection = await voiceChannel.join();
-        const foundSong = ytdl(searchResultUrl, { filter: 'audioonly' })
-        const dispatcher = connection.play(foundSong);
-
-        dispatcher.setVolume(DEFAULT_VOLUME);
-        dispatcher.resume();
-        dispatcher.on('finish', () => {
-          console.log('Song done!');
-        });
-      }
-    }
-
-    lock = false;
+  switch(command) {
+    case 'play':
+      queueSong(message, params, serverQueue);
+      break;
+    case 'stop':
+      stopSong(serverQueue);
+      break;
+    case 'skip':
+      skipSong(params, serverQueue);
+      break;
+    default:
+      message.channel.send('That is not a valid command. Poggers in the chat.');
   }
 });
+
+const queueSong = async function(message, params, serverQueue) {
+  const textChannel = message.channel;
+  const voiceChannel = message.member.voice.channel;
+
+  if(!voiceChannel) return message.channel.send('You need to be in a voice channel to hear music, idiot!');
+
+  const searchResults = await ytsr(params);
+  const song = {
+    url: searchResults.items[0].link,
+    title: searchResults.items[0].title,
+  }
+
+  textChannel.send(`Playing "${song.title}"`);
+
+  if(!serverQueue) {
+    const queueConstruct = {
+      textChannel,
+      voiceChannel,
+      connection: null,
+      songs: [],
+      volume: DEFAULT_VOLUME,
+      playing: true,
+    };
+
+    queue.set(message.guild.id, queueConstruct);
+    queueConstruct.songs.push(song);
+
+    const connection = await voiceChannel.join();
+    queueConstruct = { connection };
+    playSong(message.guild, queueConstruct.songs[0]);
+  } else {
+    serverQueue.songs.push(song);
+    return message.channel.send(`${song.title} added to the queue poggers in the chat`);
+  }
+}
+
+const playSong = async function(guild, song) {
+  const serverQueue = queue.get(guild.id);
+  const foundSong = ytdl(song.url, { filter: 'audioonly' })
+  const dispatcher = serverQueue
+    .connection
+    .play(foundSong)
+    .on('finish', () => {
+      console.log(`Finished playing ${song.title}`);
+      serverQueue.songs.shift();
+      play(guild, serverQueue.songs[0]);
+    });
+
+  dispatcher.setVolume(DEFAULT_VOLUME);
+  serverQueue.textChannel.send(`SongBot playing "${song.title}"`);
+}
+
+const stopSong = async function(serverQueue) {
+  serverQueue.textChannel.send(`RIP in pieces SongBot...`);
+  serverQueue.songs = [];
+  serverQueue.connection.dispatcher.end();
+}
+
+const skipSong = async function(serverQueue) {
+  serverQueue.textChannel.send(`SongBot is skipping ${song.title}.`);
+  serverQueue.connection.dispatcher.end();
+}
 
 bot.login(process.env.DISCORD_BOT_TOKEN);
