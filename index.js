@@ -9,8 +9,11 @@ const queue = new Map();
 
 const PREFIX = '!';
 const DEFAULT_VOLUME = 0.1;
-
-bot.once('ready', console.log('SongBoy online!'));
+const COMMANDS = {
+  play: 'song',
+  stop: 'stop',
+  skip: 'skip',
+};
 
 bot.on('message', async message => {
   const serverQueue = queue.get(message.guild.id);
@@ -23,17 +26,18 @@ bot.on('message', async message => {
   const params = message.content.match(commandRegex)[2].trim();
 
   switch(command) {
-    case 'play':
+    case COMMANDS.play:
       queueSong(message, params, serverQueue);
       break;
-    case 'stop':
+    case COMMANDS.stop:
       stopSong(serverQueue);
       break;
-    case 'skip':
+    case COMMANDS.skip:
       skipSong(params, serverQueue);
       break;
     default:
       message.channel.send('That is not a valid command. Poggers in the chat.');
+      break;
   }
 });
 
@@ -49,8 +53,6 @@ const queueSong = async function(message, params, serverQueue) {
     title: searchResults.items[0].title,
   }
 
-  textChannel.send(`Playing "${song.title}"`);
-
   if(!serverQueue) {
     const queueConstruct = {
       textChannel,
@@ -65,7 +67,7 @@ const queueSong = async function(message, params, serverQueue) {
     queueConstruct.songs.push(song);
 
     const connection = await voiceChannel.join();
-    queueConstruct = { connection };
+    queueConstruct.connection = connection;
     playSong(message.guild, queueConstruct.songs[0]);
   } else {
     serverQueue.songs.push(song);
@@ -82,7 +84,7 @@ const playSong = async function(guild, song) {
     .on('finish', () => {
       console.log(`Finished playing ${song.title}`);
       serverQueue.songs.shift();
-      play(guild, serverQueue.songs[0]);
+      playSong(guild, serverQueue.songs[0]);
     });
 
   dispatcher.setVolume(DEFAULT_VOLUME);
