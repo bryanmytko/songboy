@@ -81,9 +81,10 @@ const queueSong = async function(message, params, serverQueue) {
 }
 
 const playSong = async function(guild, song) {
+  const serverQueue = queue.get(guild.id);
+
   if(!song) return serverQueue.textChannel.send('Queue is empty. SongBoy is out of music :(');
 
-  const serverQueue = queue.get(guild.id);
   const foundSong = ytdl(song.url, { filter: 'audioonly' })
   const dispatcher = serverQueue
     .connection
@@ -120,7 +121,11 @@ const skipSong = async function(serverQueue) {
 
 const listQueue = function(serverQueue) {
   try {
-    server.textChannel.send(`Current queue: ${serverQueue.songs.join(', ')}`);;
+    if(!serverQueue.songs.length) {
+      serverQueue.textChannel.send('Queue is empty.');
+    } else {
+      serverQueue.textChannel.send(`Current queue: \n${serverQueue.songs.map((s, i) => `${i + 1}. ${s.title}`).join('\n')}`);;
+    }
   } catch(e) {
     console.log(e);
   }
