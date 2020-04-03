@@ -32,7 +32,7 @@ bot.on('message', async message => {
       queueSong(message, params, serverQueue);
       break;
     case COMMANDS.stop:
-      stopSong(serverQueue);
+      stopSong(message, serverQueue);
       break;
     case COMMANDS.skip:
       skipSong(serverQueue);
@@ -52,40 +52,54 @@ const queueSong = async function(message, params, serverQueue) {
 
   if(!voiceChannel) return message.channel.send('You need to be in a voice channel to hear music, idiot!');
 
-  const searchResults = await ytsr(params, { limit: 1 });
-  const song = {
-    url: searchResults.items[0].link,
-    title: searchResults.items[0].title,
-  }
+  await ytsr.getFilters(params, async (err, filters) => {
+    const filter = filters.get('Type').find(o => o.name === 'Video');
+    const options = {
+      limit: 5,
+      nextpageRef: filter.ref,
+    }
 
-  if(!serverQueue) {
-    const queueConstruct = {
-      textChannel,
-      voiceChannel,
-      connection: null,
-      songs: [],
-      volume: DEFAULT_VOLUME,
-      playing: true,
+    const results = await ytsr(params, options);
+
+    const song = {
+      url: results.items[0].link,
+      title: results.items[0].title,
     };
 
-    queue.set(message.guild.id, queueConstruct);
-    queueConstruct.songs.push(song);
+    if(!serverQueue) {
+      const queueConstruct = {
+        textChannel,
+        voiceChannel,
+        connection: null,
+        songs: [],
+        volume: DEFAULT_VOLUME,
+        playing: true,
+      };
 
-    const connection = await voiceChannel.join();
-    queueConstruct.connection = connection;
-    playSong(message.guild, queueConstruct.songs[0]);
-  } else {
-    serverQueue.songs.push(song);
-    return message.channel.send(`"${song.title}" added to the queue poggers in the chat`);
-  }
+      queue.set(message.guild.id, queueConstruct);
+      queueConstruct.songs.push(song);
+
+      const connection = await voiceChannel.join();
+      queueConstruct.connection = connection;
+      playSong(message.guild, queueConstruct.songs[0]);
+    } else {
+      serverQueue.songs.push(song);
+      return message.channel.send(`"${song.title}" added to the queue poggers in the chat`);
+    }
+  });
 }
 
 const playSong = async function(guild, song) {
   const serverQueue = queue.get(guild.id);
 
-  if(!song) return serverQueue.textChannel.send('Queue is empty. SongBoy is out of music :(');
+  if(!song) {
+    serverQueue.voiceChannel.leave();
+    queue.delete(guild.id);
+    return serverQueue.textChannel.send('Queue is empty. SongBoy is out of music :(');
+  }
 
   const foundSong = ytdl(song.url, { filter: 'audioonly' })
+
   const dispatcher = serverQueue
     .connection
     .play(foundSong)
@@ -99,12 +113,13 @@ const playSong = async function(guild, song) {
   serverQueue.textChannel.send(`SongBot playing "${song.title}"`);
 }
 
-const stopSong = async function(serverQueue) {
+const stopSong = async function(message, serverQueue) {
   if(!serverQueue) return;
 
-  serverQueue.textChannel.send(`RIP in pieces SongBot... This currently breaks the bot. Don't use it`);
+  serverQueue.textChannel.send(`RIP in pieces SongBot...`);
   serverQueue.songs = [];
-  serverQueue.connection.disconnect();
+  serverQueue.voiceChannel.leave();
+  queue.delete(message.guild.id);
 }
 
 const skipSong = async function(serverQueue) {
