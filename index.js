@@ -1,5 +1,7 @@
 require('dotenv').config();
 
+const bugsnag = require('@bugsnag/js')
+const bugsnagClient = bugsnag(process.env.BUGSNAG_API_KEY)
 const ytdl = require('ytdl-core');
 const ytsr = require('ytsr');
 const Discord = require('discord.js');
@@ -44,6 +46,9 @@ bot.on('message', async message => {
       message.channel.send('That is not a valid command. Poggers in the chat.');
       break;
   }
+})
+.on('error', err => {
+  bugsnagClient.notify(err)
 });
 
 const queueSong = async function(message, params, serverQueue) {
@@ -107,6 +112,9 @@ const playSong = async function(guild, song) {
       console.log(`Finished playing "${song.title}"`);
       serverQueue.songs.shift();
       playSong(guild, serverQueue.songs[0]);
+    })
+    .on('error', err => {
+      bugsnagClient.notify(err)
     });
 
   dispatcher.setVolume(DEFAULT_VOLUME);
