@@ -46,6 +46,10 @@ bot.on('message', async message => {
   }
 });
 
+bot.on('disconnected', () => {
+  console.log('>> Song boy has been disconnected. This is not a good thing.');
+});
+
 const queueSong = async function(message, params, serverQueue) {
   const textChannel = message.channel;
   const voiceChannel = message.member.voice.channel;
@@ -59,32 +63,35 @@ const queueSong = async function(message, params, serverQueue) {
       nextpageRef: filter.ref,
     }
 
-    const results = await ytsr(params, options);
-
-    const song = {
-      url: results.items[0].link,
-      title: results.items[0].title,
-    };
-
-    if(!serverQueue) {
-      const queueConstruct = {
-        textChannel,
-        voiceChannel,
-        connection: null,
-        songs: [],
-        volume: DEFAULT_VOLUME,
-        playing: true,
+    try {
+      const results = await ytsr(params, options);
+      const song = {
+        url: results.items[0].link,
+        title: results.items[0].title,
       };
 
-      queue.set(message.guild.id, queueConstruct);
-      queueConstruct.songs.push(song);
+      if(!serverQueue) {
+        const queueConstruct = {
+          textChannel,
+          voiceChannel,
+          connection: null,
+          songs: [],
+          volume: DEFAULT_VOLUME,
+          playing: true,
+        };
 
-      const connection = await voiceChannel.join();
-      queueConstruct.connection = connection;
-      playSong(message.guild, queueConstruct.songs[0]);
-    } else {
-      serverQueue.songs.push(song);
-      return message.channel.send(`"${song.title}" added to the queue poggers in the chat`);
+        queue.set(message.guild.id, queueConstruct);
+        queueConstruct.songs.push(song);
+
+        const connection = await voiceChannel.join();
+        queueConstruct.connection = connection;
+        playSong(message.guild, queueConstruct.songs[0]);
+      } else {
+        serverQueue.songs.push(song);
+        return message.channel.send(`"${song.title}" added to the queue poggers in the chat`);
+      }
+    } catch(e) {
+      console.log('API ERROR ytsr!:', e);
     }
   });
 }
@@ -98,22 +105,29 @@ const playSong = async function(guild, song) {
     return serverQueue.textChannel.send('Queue is empty. SongBoy is out of music :(');
   }
 
-  const foundSong = ytdl(song.url, { filter: 'audioonly' })
+  try {
+    const foundSong = await ytdl(song.url, { filter: 'audioonly' })
 
-  const dispatcher = serverQueue
-    .connection
-    .play(foundSong)
-    .on('finish', () => {
-      console.log(`Finished playing "${song.title}"`);
-      serverQueue.songs.shift();
-      playSong(guild, serverQueue.songs[0]);
-    })
-    .on('error', err => {
-      console.log(`error: ${err}`)
-    });
+    const dispatcher = serverQueue
+      .connection
+      .play(foundSong)
+      .on('finish', () => {
+        console.log(`Finished playing "${song.title}"`);
+        serverQueue.songs.shift();
+        playSong(guild, serverQueue.songs[0]);
+      })
+      .on('error', err => {
+        console.log(`Error, probably related to ytdl!: ${err}`)
+        serverQueue.songs.shift();
+        playSong(guild, serverQueue.songs[0]);
+      });
 
-  dispatcher.setVolume(DEFAULT_VOLUME);
-  serverQueue.textChannel.send(`SongBot playing "${song.title}"`);
+    dispatcher.setVolume(DEFAULT_VOLUME);
+    serverQueue.textChannel.send(`SongBot playing "${song.title}"`);
+  } catch(e) {
+    console.log('API ERROR ytdl!', e);
+    playSong(guild, song); // Try again?
+  }
 }
 
 const stopSong = async function(message, serverQueue) {
