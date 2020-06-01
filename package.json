@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:dev": "nodemon index.js",
-    "start": "pm2 start index.js"
+    "start": "pm2-runtime start ecosystem.config.js --env production"
   },
   "author": "",
   "license": "ISC",
@@ -17,6 +17,7 @@
     "dotenv": "^8.2.0",
     "nodemon": "^2.0.3",
     "ytdl-core": "^2.1.5",
-    "ytsr": "^0.1.14"
+    "ytsr": "^0.1.14",
+    "pm2": "^4.4.0"
   }
 }

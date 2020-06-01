@@ -53,10 +53,11 @@ bot.on('disconnected', () => {
 const queueSong = async function(message, params, serverQueue) {
   const textChannel = message.channel;
   const voiceChannel = message.member.voice.channel;
+  const cleanParams = sanitizeParams(params, textChannel);
 
-  if(!voiceChannel) return message.channel.send('You need to be in a voice channel to hear music, idiot!');
+  if(!voiceChannel) return textChannel.send('You need to be in a voice channel to hear music, idiot!');
 
-  await ytsr.getFilters(params, async (err, filters) => {
+  await ytsr.getFilters(cleanParams, async (err, filters) => {
     const filter = filters.get('Type').find(o => o.name === 'Video');
     const options = {
       limit: 5,
@@ -64,7 +65,7 @@ const queueSong = async function(message, params, serverQueue) {
     }
 
     try {
-      const results = await ytsr(params, options);
+      const results = await ytsr(cleanParams, options);
       const song = {
         url: results.items[0].link,
         title: results.items[0].title,
@@ -160,6 +161,20 @@ const listQueue = function(serverQueue) {
     }
   } catch(e) {
     console.log(e);
+  }
+}
+
+const sanitizeParams = function(params, textChannel) {
+  try {
+    const input = new URL(params);
+    try {
+      return input.searchParams.get('v');
+    } catch {
+      textChannel.send('That does not seem to be a valid URL pogChamp. Searching anyway...');
+      return params;
+    }
+  } catch {
+    return params;
   }
 }
 
