@@ -7,8 +7,17 @@ const Discord = require('discord.js');
 const bot = new Discord.Client();
 const queue = new Map();
 
+const TMP_IMGS = [
+  'https://media.tenor.com/images/7a28ad56a59500f38305a493cac0fee3/tenor.gif',
+  'https://media1.tenor.com/images/596fec2152d6b02caf11facee5fcdffd/tenor.gif',
+  'https://media1.tenor.com/images/98b5cf790161475a447bbd201085c597/tenor.gif',
+  'https://media1.tenor.com/images/23733b37163bb20182c32e223192071d/tenor.gif',
+  'https://media1.tenor.com/images/8c3b8de87353e2bf5b49fd7e25df0f0d/tenor.gif',
+];
+
 const PREFIX = '!';
 const DEFAULT_VOLUME = 0.1;
+const ACCEPTED_CHANNELS = ['bryans-bot-factory', 'songboy', 'song-boy', 'music'];
 const COMMANDS = {
   play: 'song',
   stop: 'stop',
@@ -21,6 +30,12 @@ bot.on('message', async message => {
   const textChannel = message.channel;
 
   if(!message.content.startsWith(PREFIX)) return;
+  if(!ACCEPTED_CHANNELS.includes(textChannel.name)) {
+    return message.channel
+      .send('Try using one of the acceptable Song Boy channels!', {
+        files: [TMP_IMGS[Math.floor(Math.random() * TMP_IMGS.length)]],
+      });
+  }
 
   const commandRegex = new RegExp(`^${PREFIX}([^ ]+)\\s*(.*)`, 'i');
   const match = message.content.match(commandRegex);
