@@ -3,9 +3,11 @@ require('dotenv').config();
 const ytdl = require('ytdl-core');
 const Discord = require('discord.js');
 const YouTube = require('simple-youtube-api');
+const Entities = require('html-entities').XmlEntities;
 
 const bot = new Discord.Client();
 const youtube = new YouTube(process.env.GOOGLE_API_KEY);
+const entities = new Entities();
 const queue = new Map();
 
 const YOUTUBE_WATCH_URL = 'https://www.youtube.com/watch?v=';
@@ -77,7 +79,7 @@ const queueSong = async function(message, params, serverQueue) {
 
   const song = {
     url: `${YOUTUBE_WATCH_URL}${results[0].id}`,
-    title: results[0].title,
+    title: entities.decode(results[0].title),
     img: results[0].thumbnails.high.url,
   };
 
