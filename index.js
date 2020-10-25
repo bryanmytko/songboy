@@ -3,10 +3,13 @@ require('dotenv').config();
 const ytdl = require('ytdl-core');
 const ytsr = require('ytsr');
 const Discord = require('discord.js');
+const YouTube = require('simple-youtube-api');
 
 const bot = new Discord.Client();
+const youtube = new YouTube(process.env.GOOGLE_API_KEY);
 const queue = new Map();
 
+const YOUTUBE_WATCH_URL = 'https://www.youtube.com/watch?v=';
 const TMP_IMGS = [
   'https://media.tenor.com/images/7a28ad56a59500f38305a493cac0fee3/tenor.gif',
   'https://media1.tenor.com/images/596fec2152d6b02caf11facee5fcdffd/tenor.gif',
@@ -14,7 +17,6 @@ const TMP_IMGS = [
   'https://media1.tenor.com/images/23733b37163bb20182c32e223192071d/tenor.gif',
   'https://media1.tenor.com/images/8c3b8de87353e2bf5b49fd7e25df0f0d/tenor.gif',
 ];
-
 const PREFIX = '!';
 const DEFAULT_VOLUME = 0.1;
 const ACCEPTED_CHANNELS = ['bryans-bot-factory', 'songboy', 'song-boy', 'music'];
@@ -56,13 +58,13 @@ bot.on('message', async message => {
       listQueue(serverQueue);
       break;
     default:
-      message.channel.send('That is not a valid command. Poggers in the chat.');
+      message.channel.send('That is not a valid command.');
       break;
   }
 });
 
 bot.on('disconnected', () => {
-  console.log('>> Song boy has been disconnected. This is not a good thing.');
+  console.log('>> Song boy has been disconnected. This is probably not a good thing.');
 });
 
 const queueSong = async function(message, params, serverQueue) {
@@ -70,46 +72,36 @@ const queueSong = async function(message, params, serverQueue) {
   const voiceChannel = message.member.voice.channel;
   const cleanParams = sanitizeParams(params, textChannel);
 
-  if(!voiceChannel) return textChannel.send('You need to be in a voice channel to hear music, idiot!');
+  if(!voiceChannel) return textChannel.send('You need to be in a Song Boy voice channel to hear music.');
 
-  await ytsr.getFilters(cleanParams, async (err, filters) => {
-    const filter = filters.get('Type').find(o => o.name === 'Video');
-    const options = {
-      limit: 5,
-      nextpageRef: filter.ref,
-    }
+  const results = await youtube.searchVideos(cleanParams, 1);
 
-    try {
-      const results = await ytsr(cleanParams, options);
-      const song = {
-        url: results.items[0].link,
-        title: results.items[0].title,
-      };
+  const song = {
+    url: `${YOUTUBE_WATCH_URL}${results[0].id}`,
+    title: results[0].title,
+    img: results[0].thumbnails.high.url,
+  };
 
-      if(!serverQueue) {
-        const queueConstruct = {
-          textChannel,
-          voiceChannel,
-          connection: null,
-          songs: [],
-          volume: DEFAULT_VOLUME,
-          playing: true,
-        };
+  if(!serverQueue) {
+    const queueConstruct = {
+      textChannel,
+      voiceChannel,
+      connection: null,
+      songs: [],
+      volume: DEFAULT_VOLUME,
+      playing: true,
+    };
 
-        queue.set(message.guild.id, queueConstruct);
-        queueConstruct.songs.push(song);
+    queue.set(message.guild.id, queueConstruct);
+    queueConstruct.songs.push(song);
 
-        const connection = await voiceChannel.join();
-        queueConstruct.connection = connection;
-        playSong(message.guild, queueConstruct.songs[0]);
-      } else {
-        serverQueue.songs.push(song);
-        return message.channel.send(`"${song.title}" added to the queue poggers in the chat`);
-      }
-    } catch(e) {
-      console.log('API ERROR ytsr!:', e);
-    }
-  });
+    const connection = await voiceChannel.join();
+    queueConstruct.connection = connection;
+    playSong(message.guild, queueConstruct.songs[0]);
+  } else {
+    serverQueue.songs.push(song);
+    return message.channel.send(`"${song.title}" added to the queue.`);
+  }
 }
 
 const playSong = async function(guild, song) {
@@ -140,6 +132,9 @@ const playSong = async function(guild, song) {
 
     dispatcher.setVolume(DEFAULT_VOLUME);
     serverQueue.textChannel.send(`SongBot playing "${song.title}"`);
+    serverQueue.textChannel.send('', {
+      files: [song.img],
+    });
   } catch(e) {
     console.log('API ERROR ytdl!', e);
     playSong(guild, song); // Try again?
