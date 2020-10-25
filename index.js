@@ -1,7 +1,6 @@
 require('dotenv').config();
 
 const ytdl = require('ytdl-core');
-const ytsr = require('ytsr');
 const Discord = require('discord.js');
 const YouTube = require('simple-youtube-api');
 
