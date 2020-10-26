@@ -32,6 +32,7 @@ Get an API Key to use the YouTube API by following through Step 1 in this guide:
 
 [https://developers.google.com/youtube/v3/quickstart/js](https://developers.google.com/youtube/v3/quickstart/js).
 
+Add that value to `GOOGLE_API_KEY` in your env.
 
 ## Deploy and Run
 
