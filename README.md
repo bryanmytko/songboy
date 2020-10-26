@@ -6,8 +6,10 @@ Discord bot to play music.
 
 1. Create a `.env` or add to your environment:
 
+```
 DISCORD_BOT_TOKEN=xxxx                      
 GOOGLE_API_KEY=xxxx
+```
 
 Follow next steps for obtaining these values.
 
