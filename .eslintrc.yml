@@ -1,0 +1,12 @@
+extends:
+  - airbnb-base
+  # - prettier
+
+globals:
+  # Resolve errors relating to Mocha global variables
+  after: true
+  afterEach: true
+  before: true
+  beforeEach: true
+  describe: true
+  it: false
