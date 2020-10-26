@@ -12,7 +12,7 @@ const commands = require('./src/commands');
 const bot = new Discord.Client();
 const queue = new Map();
 
-bot.login(process.env.DISCORD_BOT_TOKEN_DEV);
+bot.login(process.env.DISCORD_BOT_TOKEN);
 
 bot.on('ready', () => logger.info(MSG_CONNECTED));
 
