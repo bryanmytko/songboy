@@ -3,9 +3,9 @@ const { MSG_INVALID_CHANNEL } = require('./messages');
 const randomImage = require('./random_image');
 
 const validMessage = (message) => {
-  if(!message.content.startsWith(PREFIX)) return false;
+  if (!message.content.startsWith(PREFIX)) return false;
 
-  if(!ACCEPTED_CHANNELS.includes(message.channel.name)) {
+  if (!ACCEPTED_CHANNELS.includes(message.channel.name)) {
     message
       .channel
       .send(MSG_INVALID_CHANNEL, { files: [randomImage()] });
@@ -14,13 +14,14 @@ const validMessage = (message) => {
   }
 
   return true;
-}
+};
 
-const validVoiceChannel = (message) => {
-  return message && message.member && message.member.voice && message.member.voice.channel;
-}
+const validVoiceChannel = (message) => message
+  && message.member
+  && message.member.voice
+  && message.member.voice.channel;
 
 module.exports = {
   validMessage,
   validVoiceChannel,
-}
+};

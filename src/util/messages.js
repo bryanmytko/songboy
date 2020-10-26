@@ -10,4 +10,8 @@ module.exports = {
   MSG_FINSIHED_PLAYING: (song) => `Finished playing "${song}"`,
   MSG_YOUTUBE_ERROR: 'Something went wrong with YouTube and/or ytdl.',
   MSG_PLAYING: (song) => `Song Boy is playing "${song}"`,
+  MSG_STOP: ':skull_crossbones: RIP in pieces Song Boy...',
+  MSG_QUEUE_CURRENT: (songs) => `Current queue: \n${songs}`,
+  MSG_SKIP_FAIL: 'No songs to skip. Queue is empty!',
+  MSG_SKIP: (song) => `Song Boy is skipping ${song}.`,
 };

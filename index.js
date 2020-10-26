@@ -16,8 +16,8 @@ bot.login(process.env.DISCORD_BOT_TOKEN_DEV);
 
 bot.on('ready', () => logger.info(MSG_CONNECTED));
 
-bot.on('message', async message => {
-  if(!validMessage(message)) return;
+bot.on('message', async (message) => {
+  if (!validMessage(message)) return;
 
   const match = message.content.match(commandRegex);
   const command = match[1];
@@ -29,7 +29,7 @@ bot.on('message', async message => {
 
   try {
     await commands[command](params);
-  } catch(e) {
+  } catch (e) {
     message.channel.send(MSG_INVALID_COMMAND(command));
     logger.error(e);
   }

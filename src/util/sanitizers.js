@@ -1,5 +1,5 @@
 module.exports = {
-  sanitizeParams: (params, textChannel) => {
+  sanitizeParams: (params) => {
     try {
       const input = new URL(params);
 
@@ -7,11 +7,11 @@ module.exports = {
         if the input param is an actual YouTube link */
       try {
         return input.searchParams.get('v');
-      } catch {
+      } catch (e) {
         return params;
       }
-    } catch {
+    } catch (e) {
       return params;
     }
   },
-}
+};
