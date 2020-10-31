@@ -34,8 +34,9 @@ const playSong = async (guild, queue, song) => {
         serverQueue.songs.shift();
         playSong(guild, queue, serverQueue.songs[0]);
       })
-      .on('error', () => {
+      .on('error', (e) => {
         logger.error(MSG_YOUTUBE_ERROR);
+        logger.error(e);
         serverQueue.songs.shift();
         playSong(guild, queue, serverQueue.songs[0]);
       });
