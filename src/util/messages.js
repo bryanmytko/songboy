@@ -14,4 +14,18 @@ module.exports = {
   MSG_QUEUE_CURRENT: (songs) => `Current queue: \n${songs}`,
   MSG_SKIP_FAIL: 'No songs to skip. Queue is empty!',
   MSG_SKIP: (song) => `Song Boy is skipping ${song}.`,
+  TTS_LEADS: (song, name) => [
+    `This one goes out to ${name}. Here's ${song}`,
+    `${name} has requested ${song}, so here it is.`,
+    `Can we get some poggers in the chat for ${song}`,
+    `Another request coming in from ${name}`,
+    `Here's another Song Boy classic... ${song}`,
+    `Here's the summer jam of 2020, none other than ${song}`,
+    'Oooh this one is spicy',
+    'Sup Buh-Buh-Buh-Buh-Boyz, Song Boy here with another banger',
+    `Song Boy Radio, one-oh-four-point-nine on your FM dial. Here's ${song}`,
+    `Shout out to big ${name}. Let's go!`,
+    'I had my first kiss to this one.',
+    `Everybody get ready to swing your floppy dick to this jam: ${song}`,
+  ],
 };

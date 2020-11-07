@@ -10,11 +10,13 @@ const {
 const { DEFAULT_VOLUME, YOUTUBE_WATCH_URL } = require('../util/constants');
 const { sanitizeParams } = require('../util/sanitizers');
 const { validVoiceChannel } = require('../util/validators');
+const { ttsLead } = require('../util/tts');
 
 const youtube = new YouTube(process.env.GOOGLE_API_KEY);
 const entities = new Entities();
 
-const playSong = async (guild, queue, song) => {
+const playSong = async (message, queue, song) => {
+  const { guild } = message;
   const serverQueue = queue.get(guild.id);
 
   if (!song) {
@@ -25,31 +27,38 @@ const playSong = async (guild, queue, song) => {
 
   try {
     const foundSong = await ytdl(song.url, { filter: 'audioonly' });
+    const ttsStream = await ttsLead(message, song.title); // Get a lead in from the "DJ"
 
-    const dispatcher = serverQueue
+    return serverQueue
       .connection
-      .play(foundSong)
+      .play(ttsStream)
       .on('finish', () => {
-        logger.info(MSG_FINISHED_PLAYING(song.title));
-        serverQueue.songs.shift();
-        playSong(guild, queue, serverQueue.songs[0]);
-      })
-      .on('error', (e) => {
-        logger.error(MSG_YOUTUBE_ERROR);
-        logger.error(e);
-        serverQueue.songs.shift();
-        playSong(guild, queue, serverQueue.songs[0]);
+        const dispatcher = serverQueue
+          .connection
+          .play(foundSong)
+          .on('finish', () => {
+            logger.info(MSG_FINISHED_PLAYING(song.title));
+            serverQueue.songs.shift();
+            playSong(message, queue, serverQueue.songs[0]);
+          })
+          .on('error', (e) => {
+            logger.error(MSG_YOUTUBE_ERROR);
+            logger.error('Big ERROR', e);
+            serverQueue.songs.shift();
+            playSong(message, queue, serverQueue.songs[0]);
+          });
+
+        dispatcher.setVolume(DEFAULT_VOLUME);
+        serverQueue.textChannel.send(MSG_PLAYING(song.title));
+        return serverQueue.textChannel.send('', {
+          files: [song.img],
+        });
       });
-
-    dispatcher.setVolume(DEFAULT_VOLUME);
-    serverQueue.textChannel.send(MSG_PLAYING(song.title));
-    return serverQueue.textChannel.send('', {
-      files: [song.img],
-    });
   } catch (e) {
-    logger.error(MSG_YOUTUBE_ERROR, e);
+    logger.error(MSG_YOUTUBE_ERROR);
+    logger.error(e);
 
-    return playSong(guild, queue, song); // Try again?
+    return playSong(message, queue, song); // Try again?
   }
 };
 
@@ -85,7 +94,8 @@ module.exports = async (params) => {
 
     const connection = await voiceChannel.join();
     queueConstruct.connection = connection;
-    return playSong(message.guild, queue, queueConstruct.songs[0]);
+
+    return playSong(message, queue, queueConstruct.songs[0]);
   }
 
   serverQueue.songs.push(song);
