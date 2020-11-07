@@ -1,28 +1,29 @@
-// Imports the Google Cloud client library
 const textToSpeech = require('@google-cloud/text-to-speech');
+const { Readable } = require('stream');
 
-// Import other required libraries
-const fs = require('fs');
-const util = require('util');
-// Creates a client
+const { TTS_LEADS } = require('./messages');
+
 const client = new textToSpeech.TextToSpeechClient();
-module.exports = async (message) => {
-  // The text to synthesize
-  console.log(message.author.username)
-  const text = `This one goes out to ${message.author.username}! ${message}`;
 
-  // Construct the request
+const ttsLead = async (message, song) => {
+  const name = message.author.username;
+  const leads = TTS_LEADS(song, name);
+  const text = leads[Math.floor(Math.random() * leads.length)];
+
   const request = {
-    input: {text: text},
-    // Select the language and SSML voice gender (optional)
-    voice: {languageCode: 'en-US', ssmlGender: 'NEUTRAL'},
-    // select the type of audio encoding
-    audioConfig: {audioEncoding: 'MP3'},
+    input: { text },
+    voice: { languageCode: 'en-US', ssmlGender: 'NEUTRAL' },
+    audioConfig: { audioEncoding: 'MP3' },
   };
 
-  // Performs the text-to-speech request
   const [response] = await client.synthesizeSpeech(request);
-  console.log('res:', response.audioContent);
+  const stream = new Readable();
+  stream.push(response.audioContent);
+  stream.push(null);
 
-  return response.audioContent;
-}
+  return stream;
+};
+
+module.exports = {
+  ttsLead,
+};
