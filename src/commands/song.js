@@ -2,6 +2,7 @@ const ytdl = require('ytdl-core');
 const logger = require('pino')({ prettyPrint: true });
 const YouTube = require('simple-youtube-api');
 const Entities = require('html-entities').XmlEntities;
+const { Readable } = require('stream');
 
 const {
   MSG_ADDED_TO_QUEUE, MSG_INVALID_VOICE_CHANNEL, MSG_QUEUE_EMPTY,
@@ -10,6 +11,7 @@ const {
 const { DEFAULT_VOLUME, YOUTUBE_WATCH_URL } = require('../util/constants');
 const { sanitizeParams } = require('../util/sanitizers');
 const { validVoiceChannel } = require('../util/validators');
+const tts = require('../util/tts');
 
 const youtube = new YouTube(process.env.GOOGLE_API_KEY);
 const entities = new Entities();
@@ -36,7 +38,7 @@ const playSong = async (guild, queue, song) => {
       })
       .on('error', (e) => {
         logger.error(MSG_YOUTUBE_ERROR);
-        logger.error(e);
+        logger.error('Big ERROR', e);
         serverQueue.songs.shift();
         playSong(guild, queue, serverQueue.songs[0]);
       });
@@ -47,7 +49,8 @@ const playSong = async (guild, queue, song) => {
       files: [song.img],
     });
   } catch (e) {
-    logger.error(MSG_YOUTUBE_ERROR, e);
+    logger.error(MSG_YOUTUBE_ERROR);
+    logger.error(e);
 
     return playSong(guild, queue, song); // Try again?
   }
@@ -85,7 +88,25 @@ module.exports = async (params) => {
 
     const connection = await voiceChannel.join();
     queueConstruct.connection = connection;
-    return playSong(message.guild, queue, queueConstruct.songs[0]);
+
+    // @TODO
+    const buffer = await tts(message); // buffer
+    const stream = new Readable();
+    stream.push(buffer);
+    stream.push(null);
+// queueConstruct why this name doesn't match
+    queueConstruct
+      .connection
+      .play(stream)
+      .on('finish', () => {
+        playSong(message.guild, queue, queueConstruct.songs[0]);
+      })
+      .on('error', (e) => {
+        logger.error(MSG_YOUTUBE_ERROR);
+        logger.error('Big ERROR', e);
+        serverQueue.songs.shift();
+        playSong(message.guild, queue, queueConstruct.songs[0]);
+      });
   }
 
   serverQueue.songs.push(song);
