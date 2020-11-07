@@ -2,7 +2,6 @@ const ytdl = require('ytdl-core');
 const logger = require('pino')({ prettyPrint: true });
 const YouTube = require('simple-youtube-api');
 const Entities = require('html-entities').XmlEntities;
-const { Readable } = require('stream');
 
 const {
   MSG_ADDED_TO_QUEUE, MSG_INVALID_VOICE_CHANNEL, MSG_QUEUE_EMPTY,
@@ -11,7 +10,7 @@ const {
 const { DEFAULT_VOLUME, YOUTUBE_WATCH_URL } = require('../util/constants');
 const { sanitizeParams } = require('../util/sanitizers');
 const { validVoiceChannel } = require('../util/validators');
-const tts = require('../util/tts');
+const { ttsLead } = require('../util/tts');
 
 const youtube = new YouTube(process.env.GOOGLE_API_KEY);
 const entities = new Entities();
@@ -89,21 +88,18 @@ module.exports = async (params) => {
     const connection = await voiceChannel.join();
     queueConstruct.connection = connection;
 
-    // @TODO
-    const buffer = await tts(message); // buffer
-    const stream = new Readable();
-    stream.push(buffer);
-    stream.push(null);
-// queueConstruct why this name doesn't match
+    // Get a lead in from the "DJ"
+    const ttsStream = await ttsLead(message, song.title);
+
     queueConstruct
       .connection
-      .play(stream)
+      .play(ttsStream)
       .on('finish', () => {
         playSong(message.guild, queue, queueConstruct.songs[0]);
       })
       .on('error', (e) => {
         logger.error(MSG_YOUTUBE_ERROR);
-        logger.error('Big ERROR', e);
+        logger.error(e);
         serverQueue.songs.shift();
         playSong(message.guild, queue, queueConstruct.songs[0]);
       });
