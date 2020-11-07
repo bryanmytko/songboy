@@ -1,5 +1,5 @@
 require('dotenv').config();
-const Discord = require('discord.js');
+const { Client } = require('discord.js');
 const logger = require('pino')({ prettyPrint: true });
 
 const {
@@ -9,7 +9,7 @@ const { commandRegex } = require('./src/util/regex');
 const { validMessage } = require('./src/util/validators');
 const commands = require('./src/commands');
 
-const bot = new Discord.Client();
+const bot = new Client();
 const queue = new Map();
 
 bot.login(process.env.DISCORD_BOT_TOKEN);
