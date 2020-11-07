@@ -7,7 +7,7 @@ module.exports = {
   MSG_INVALID_VOICE_CHANNEL: ':speak_no_evil: You need to be in a Song Boy voice channel to hear music.',
   MSG_ADDED_TO_QUEUE: (song) => `"${song}" added to the queue.`,
   MSG_QUEUE_EMPTY: 'Queue is empty. Song Boy is out of music :frowning:',
-  MSG_FINSIHED_PLAYING: (song) => `Finished playing "${song}"`,
+  MSG_FINISHED_PLAYING: (song) => `Finished playing "${song}"`,
   MSG_YOUTUBE_ERROR: 'Something went wrong with YouTube and/or ytdl.',
   MSG_PLAYING: (song) => `Song Boy is playing "${song}"`,
   MSG_STOP: ':skull_crossbones: RIP in pieces Song Boy...',
