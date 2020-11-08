@@ -12,7 +12,7 @@ const ttsLead = async (message, song) => {
 
   const request = {
     input: { text },
-    voice: { languageCode: 'en-US', ssmlGender: 'NEUTRAL' },
+    voice: { languageCode: 'en-US', ssmlGender: 'FEMALE' },
     audioConfig: { audioEncoding: 'MP3' },
   };
 

@@ -39,13 +39,15 @@ const playSong = async (message, queue, song) => {
           .on('finish', () => {
             logger.info(MSG_FINISHED_PLAYING(song.title));
             serverQueue.songs.shift();
-            playSong(message, queue, serverQueue.songs[0]);
+            serverQueue.messages.shift();
+            playSong(serverQueue.messages[0], queue, serverQueue.songs[0]);
           })
           .on('error', (e) => {
             logger.error(MSG_YOUTUBE_ERROR);
             logger.error('Big ERROR', e);
             serverQueue.songs.shift();
-            playSong(message, queue, serverQueue.songs[0]);
+            serverQueue.messages.shift();
+            playSong(serverQueue.messages[0], queue, serverQueue.songs[0]);
           });
 
         dispatcher.setVolume(DEFAULT_VOLUME);
@@ -57,8 +59,8 @@ const playSong = async (message, queue, song) => {
   } catch (e) {
     logger.error(MSG_YOUTUBE_ERROR);
     logger.error(e);
-
-    return playSong(message, queue, song); // Try again?
+    return e;
+    // return playSong(message, queue, song); // Try again?
   }
 };
 
@@ -85,12 +87,14 @@ module.exports = async (params) => {
       voiceChannel,
       connection: null,
       songs: [],
+      messages: [],
       volume: DEFAULT_VOLUME,
       playing: true,
     };
 
     queue.set(message.guild.id, queueConstruct);
     queueConstruct.songs.push(song);
+    queueConstruct.messages.push(message);
 
     const connection = await voiceChannel.join();
     queueConstruct.connection = connection;
@@ -99,5 +103,6 @@ module.exports = async (params) => {
   }
 
   serverQueue.songs.push(song);
+  serverQueue.messages.push(message);
   return message.channel.send(MSG_ADDED_TO_QUEUE(song.title));
 };
