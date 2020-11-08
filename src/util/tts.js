@@ -2,8 +2,10 @@ const textToSpeech = require('@google-cloud/text-to-speech');
 const { Readable } = require('stream');
 
 const { TTS_LEADS } = require('./messages');
+const { VOICES } = require('./constants');
 
 const client = new textToSpeech.TextToSpeechClient();
+const voicesPref = [26, 28, 39, 42];
 
 const ttsLead = async (message, song) => {
   const name = message.author.username;
@@ -12,8 +14,8 @@ const ttsLead = async (message, song) => {
 
   const request = {
     input: { text },
-    voice: { languageCode: 'en-US', ssmlGender: 'FEMALE' },
-    audioConfig: { audioEncoding: 'MP3' },
+    voice: VOICES[voicesPref[Math.floor(Math.random() * voicesPref.length)]],
+    audioConfig: { audioEncoding: 'MP3', speakingRate: 1.0 },
   };
 
   const [response] = await client.synthesizeSpeech(request);
