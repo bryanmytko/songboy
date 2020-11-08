@@ -15,8 +15,7 @@ const { ttsLead } = require('../util/tts');
 const youtube = new YouTube(process.env.GOOGLE_API_KEY);
 const entities = new Entities();
 
-const playSong = async (message, queue, song) => {
-  const { guild } = message;
+const playSong = async (message, queue, song, guild) => {
   const serverQueue = queue.get(guild.id);
 
   if (!song) {
@@ -40,14 +39,14 @@ const playSong = async (message, queue, song) => {
             logger.info(MSG_FINISHED_PLAYING(song.title));
             serverQueue.songs.shift();
             serverQueue.messages.shift();
-            playSong(serverQueue.messages[0], queue, serverQueue.songs[0]);
+            playSong(serverQueue.messages[0], queue, serverQueue.songs[0], guild);
           })
           .on('error', (e) => {
             logger.error(MSG_YOUTUBE_ERROR);
-            logger.error('Big ERROR', e);
+            logger.error('Dispatcher error: ', e);
             serverQueue.songs.shift();
             serverQueue.messages.shift();
-            playSong(serverQueue.messages[0], queue, serverQueue.songs[0]);
+            playSong(serverQueue.messages[0], queue, serverQueue.songs[0], guild);
           });
 
         dispatcher.setVolume(DEFAULT_VOLUME);
@@ -57,10 +56,8 @@ const playSong = async (message, queue, song) => {
         });
       });
   } catch (e) {
-    logger.error(MSG_YOUTUBE_ERROR);
     logger.error(e);
-    return e;
-    // return playSong(message, queue, song); // Try again?
+    return serverQueue.textChannel.send(MSG_YOUTUBE_ERROR);
   }
 };
 
@@ -73,7 +70,14 @@ module.exports = async (params) => {
   const voiceChannel = message.member.voice.channel;
   const serverQueue = queue.get(message.guild.id);
   const cleanParams = sanitizeParams(input);
-  const results = await youtube.searchVideos(cleanParams, 1);
+  let results;
+
+  try {
+    results = await youtube.searchVideos(cleanParams, 1);
+  } catch (e) {
+    logger.error(e);
+    return message.channel.send(MSG_YOUTUBE_ERROR);
+  }
 
   const song = {
     url: `${YOUTUBE_WATCH_URL}${results[0].id}`,
@@ -99,7 +103,7 @@ module.exports = async (params) => {
     const connection = await voiceChannel.join();
     queueConstruct.connection = connection;
 
-    return playSong(message, queue, queueConstruct.songs[0]);
+    return playSong(message, queue, queueConstruct.songs[0], message.guild);
   }
 
   serverQueue.songs.push(song);

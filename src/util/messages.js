@@ -8,7 +8,7 @@ module.exports = {
   MSG_ADDED_TO_QUEUE: (song) => `"${song}" added to the queue.`,
   MSG_QUEUE_EMPTY: 'Queue is empty. Song Boy is out of music :frowning:',
   MSG_FINISHED_PLAYING: (song) => `Finished playing "${song}"`,
-  MSG_YOUTUBE_ERROR: 'Something went wrong with YouTube and/or ytdl.',
+  MSG_YOUTUBE_ERROR: ':skull_crossbones: Something went wrong with YouTube.',
   MSG_PLAYING: (song) => `Song Boy is playing "${song}"`,
   MSG_STOP: ':skull_crossbones: RIP in pieces Song Boy...',
   MSG_QUEUE_CURRENT: (songs) => `Current queue: \n${songs}`,
