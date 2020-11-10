@@ -5,7 +5,7 @@ const Entities = require('html-entities').XmlEntities;
 
 const {
   MSG_ADDED_TO_QUEUE, MSG_INVALID_VOICE_CHANNEL, MSG_QUEUE_EMPTY,
-  MSG_YOUTUBE_ERROR, MSG_PLAYING, MSG_FINISHED_PLAYING,
+  MSG_YOUTUBE_ERROR, MSG_YOUTUBE_NOT_FOUND, MSG_PLAYING, MSG_FINISHED_PLAYING,
 } = require('../util/messages');
 const { DEFAULT_VOLUME, YOUTUBE_WATCH_URL } = require('../util/constants');
 const { sanitizeParams } = require('../util/sanitizers');
@@ -77,6 +77,10 @@ module.exports = async (params) => {
   } catch (e) {
     logger.error(e);
     return message.channel.send(MSG_YOUTUBE_ERROR);
+  }
+
+  if (Array.isArray(results) && !results.length) {
+    return message.channel.send(MSG_YOUTUBE_NOT_FOUND);
   }
 
   const song = {
