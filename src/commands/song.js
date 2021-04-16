@@ -73,36 +73,7 @@ module.exports = async (params) => {
   let results;
 
   try {
-    /* DMX */
-    const dmxSongs = [
-      'DMX where the hood at',
-      'DMX what these bitches want',
-      'DMX ruff ryders anthem',
-      'DMX party up',
-      'DMX we right here',
-      'DMX the rain',
-      'DMX slippin',
-      'DMX limp bizkit',
-      'DMX here we go again',
-      'DMX money cahs hoes',
-      'DMX stop being greedy',
-      'DMX grand finale',
-      'DMX its all good',
-      'DMX get at me dog',
-      'DMX whats my name',
-      'DMX x gon give it to ya',
-      'DMX how its goin down',
-      'DMX one more road to cross',
-      'DMX get it on the floor',
-      'DMX damien',
-      'DMX who we be',
-      'DMX no love for me',
-      'DMX blackout',
-    ];
-
-    const dmxSong = dmxSongs[Math.floor(Math.random() * dmxSongs.length)];
-
-    results = await youtube.searchVideos(`${dmxSong} lyrics`, 1);
+    results = await youtube.searchVideos(cleanParams, 1);
   } catch (e) {
     logger.error(e);
     return message.channel.send(MSG_YOUTUBE_ERROR);

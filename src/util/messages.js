@@ -17,7 +17,7 @@ module.exports = {
   MSG_SKIP: (song) => `Song Boy is skipping ${song}.`,
   TTS_LEADS: (song, name) => [
     `This one goes out to ${name}. Here's ${song}`,
-    `${name} has requested ${song}, so here it is.`,
+    `${name} has requested ${song}, so let's take that one for a spin.`,
     `Can we get some poggers in the chat for ${song}`,
     `Another request coming in from ${name}`,
     `Here's another Song Boy classic... ${song}`,
@@ -31,6 +31,9 @@ module.exports = {
     `Another cordwainer anthem coming right up, here's ${song}`,
     `Here's another treasure straight from your Horadric cube, none other than ${song}`,
     `${name} must be wainin' because that's the only time I'd expect to hear ${song}`,
+    `${name} that's the perfect soundtrack for dropping a big tier three sub to Amouranth, here's ${song}`,
+    `${name}? Nut. ${song}`,
+    `Here's DMX with Ruff Ryders... just kidding: this one is called ${song}`,
     `Here's a double you straight outta Ragnaros, nada menos que la cancion de exito ${song}`,
   ],
 };
