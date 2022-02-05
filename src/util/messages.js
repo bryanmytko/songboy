@@ -21,7 +21,7 @@ module.exports = {
     `Can we get some poggers in the chat for ${song}`,
     `Another request coming in from ${name}`,
     `Here's another Song Boy classic... ${song}`,
-    `Here's the summer jam of 2021, none other than ${song}`,
+    `Here's the summer jam of 2022, none other than ${song}`,
     'Oooh this one is spicy',
     'Sup Buh-Buh-Buh-Buh-Boyz, Song Boy here with another banger',
     `Song Boy Radio, one-oh-four-point-quin-sixty-nine on your FM dial. Here's ${song}`,
@@ -35,5 +35,9 @@ module.exports = {
     `${name}? Nut. ${song}`,
     `Here's DMX with Ruff Ryders... just kidding: this one is called ${song}`,
     `Here's a double you straight outta Ragnaros, nada menos que la cancion de exito ${song}`,
+    `${name} lost their virginity to this hit. Here's ${song}`,
+    `Woo, this pick is spicier than a used Drake condom`,
+    `Thanks, ${name}, now everyone will hate you`,
+    `This little ditty goes out to Pumpkin Spice Bryce. Here is ${song}`,
   ],
 };
