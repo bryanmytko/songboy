@@ -11,11 +11,12 @@ const { DEFAULT_VOLUME, YOUTUBE_WATCH_URL } = require('../util/constants');
 const { sanitizeParams } = require('../util/sanitizers');
 const { validVoiceChannel } = require('../util/validators');
 const { ttsLead } = require('../util/tts');
+const Playlist = require('../models/playlist');
 
 const youtube = new YouTube(process.env.GOOGLE_API_KEY);
 const entities = new Entities();
 
-const playSong = async (message, queue, song, guild) => {
+const playSong = async (playlist, message, queue, song, guild) => {
   const serverQueue = queue.get(guild.id);
 
   if (!song) {
@@ -35,18 +36,20 @@ const playSong = async (message, queue, song, guild) => {
         const dispatcher = serverQueue
           .connection
           .play(foundSong)
-          .on('finish', () => {
+          .on('finish', async () => {
             logger.info(MSG_FINISHED_PLAYING(song.title));
-            serverQueue.songs.shift();
+            playlist.songs.pop();
+            await Playlist.findOneAndUpdate({ title: 'default' }, { songs: playlist.songs });
             serverQueue.messages.shift();
-            playSong(serverQueue.messages[0], queue, serverQueue.songs[0], guild);
+            playSong(playlist, serverQueue.messages[0], queue, serverQueue.songs[0], guild);
           })
-          .on('error', (e) => {
+          .on('error', async (e) => {
             logger.error(MSG_YOUTUBE_ERROR);
             logger.error('Dispatcher error: ', e);
-            serverQueue.songs.shift();
+            playlist.songs.pop();
+            await Playlist.findOneAndUpdate({ title: 'default' }, { songs: playlist.songs });
             serverQueue.messages.shift();
-            playSong(serverQueue.messages[0], queue, serverQueue.songs[0], guild);
+            playSong(playlist, serverQueue.messages[0], queue, serverQueue.songs[0], guild);
           });
 
         dispatcher.setVolume(DEFAULT_VOLUME);
@@ -62,7 +65,12 @@ const playSong = async (message, queue, song, guild) => {
 };
 
 module.exports = async (params) => {
-  const { queue, message, input } = params;
+  const {
+    playlist,
+    queue,
+    message,
+    input,
+  } = params;
   const textChannel = message.channel;
 
   if (!validVoiceChannel(message)) return textChannel.send(MSG_INVALID_VOICE_CHANNEL);
@@ -94,23 +102,25 @@ module.exports = async (params) => {
       textChannel,
       voiceChannel,
       connection: null,
-      songs: [],
+      songs: playlist.songs,
       messages: [],
       volume: DEFAULT_VOLUME,
       playing: true,
     };
 
     queue.set(message.guild.id, queueConstruct);
-    queueConstruct.songs.push(song);
+    playlist.songs.push(song);
+    await Playlist.findOneAndUpdate({ title: 'default' }, { songs: playlist.songs });
     queueConstruct.messages.push(message);
 
     const connection = await voiceChannel.join();
     queueConstruct.connection = connection;
 
-    return playSong(message, queue, queueConstruct.songs[0], message.guild);
+    return playSong(playlist, message, queue, queueConstruct.songs[0], message.guild);
   }
 
-  serverQueue.songs.push(song);
+  playlist.songs.push(song);
+  await Playlist.findOneAndUpdate({ title: 'default' }, { songs: playlist.songs });
   serverQueue.messages.push(message);
   return message.channel.send(MSG_ADDED_TO_QUEUE(song.title));
 };
