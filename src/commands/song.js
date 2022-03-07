@@ -46,9 +46,9 @@ const playSong = async (playlist, message, queue, song, guild) => {
           .on('error', async (e) => {
             logger.error(MSG_YOUTUBE_ERROR);
             logger.error('Dispatcher error: ', e);
-            playlist.songs.pop();
-            await Playlist.findOneAndUpdate({ title: 'default' }, { songs: playlist.songs });
-            serverQueue.messages.shift();
+            // playlist.songs.pop();
+            // await Playlist.findOneAndUpdate({ title: 'default' }, { songs: playlist.songs });
+            // serverQueue.messages.shift();
             playSong(playlist, serverQueue.messages[0], queue, serverQueue.songs[0], guild);
           });
 

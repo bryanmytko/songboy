@@ -6,8 +6,9 @@ const model = mongoose.Schema({
     required: true,
   },
   songs: [{
-    type: String,
-    default: [],
+    url: String,
+    title: String,
+    img: String,
   }],
 });
 
