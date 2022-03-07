@@ -13,6 +13,7 @@ const Playlist = require('./src/models/playlist');
 
 const MONGOOSE_URL = process.env.MONGO_URL;
 const bot = new Client();
+const queue = new Map();
 
 mongoose.connect(`${MONGOOSE_URL}`, {
   useNewUrlParser: true,
@@ -30,7 +31,6 @@ Playlist.findOneAndUpdate({ title: 'default' }, { title: 'default' }).then((play
   bot.on('message', async (message) => {
     if (!validMessage(message)) return;
 
-    const queue = new Map();
     const match = message.content.match(commandRegex);
     const command = match[1];
     const params = {
