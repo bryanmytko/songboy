@@ -9,7 +9,7 @@ const {
 const { DEFAULT_VOLUME, YOUTUBE_WATCH_URL } = require('../util/constants');
 const { sanitizeParams } = require('../util/sanitizers');
 const { validVoiceChannel } = require('../util/validators');
-const playSong = require('../util/play_song');
+const { playSong } = require('../util/player');
 const Playlist = require('../models/playlist');
 
 const youtube = new YouTube(process.env.GOOGLE_API_KEY);
