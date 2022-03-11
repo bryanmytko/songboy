@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const logger = require('pino')({ prettyPrint: true });
 
 const {
-  MSG_CONNECTED, MSG_DISCONNECTED, MSG_INVALID_COMMAND,
+  MSG_CONNECTED, MSG_RECONNECTED, MSG_DISCONNECTED, MSG_INVALID_COMMAND,
 } = require('./src/util/messages');
 const { commandRegex } = require('./src/util/regex');
 const { validMessage } = require('./src/util/validators');
@@ -29,11 +29,14 @@ Playlist.findOneAndUpdate({ title: 'default' }, { title: 'default' }).then((play
   bot.on('ready', () => {
     if(playlist.songs.length) {
       logger.info(MSG_RECONNECTED);
-      commands[song]({
+      commands.reconnect({
         playlist,
         queue,
         message: {
           channel: 'saved text channel',
+          guild: {
+            id: 123
+          },
           member: {
             voice: {
               channel: 'saved voice channel'
@@ -41,8 +44,9 @@ Playlist.findOneAndUpdate({ title: 'default' }, { title: 'default' }).then((play
           }
         }
       });
+    } else {
+      logger.info(MSG_CONNECTED);
     }
-    logger.info(MSG_CONNECTED)
   });
 
   bot.on('message', async (message) => {
