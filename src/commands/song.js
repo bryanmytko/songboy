@@ -1,68 +1,19 @@
-const ytdl = require('ytdl-core');
 const logger = require('pino')({ prettyPrint: true });
 const YouTube = require('simple-youtube-api');
 const Entities = require('html-entities').XmlEntities;
 
 const {
-  MSG_ADDED_TO_QUEUE, MSG_INVALID_VOICE_CHANNEL, MSG_QUEUE_EMPTY,
-  MSG_YOUTUBE_ERROR, MSG_YOUTUBE_NOT_FOUND, MSG_PLAYING, MSG_FINISHED_PLAYING,
+  MSG_ADDED_TO_QUEUE, MSG_INVALID_VOICE_CHANNEL,
+  MSG_YOUTUBE_ERROR, MSG_YOUTUBE_NOT_FOUND,
 } = require('../util/messages');
 const { DEFAULT_VOLUME, YOUTUBE_WATCH_URL } = require('../util/constants');
 const { sanitizeParams } = require('../util/sanitizers');
 const { validVoiceChannel } = require('../util/validators');
-const { ttsLead } = require('../util/tts');
+const playSong = require('../util/play_song');
 const Playlist = require('../models/playlist');
 
 const youtube = new YouTube(process.env.GOOGLE_API_KEY);
 const entities = new Entities();
-
-const playSong = async (playlist, message, queue, song, guild) => {
-  const serverQueue = queue.get(guild.id);
-
-  if (!song) {
-    serverQueue.voiceChannel.leave();
-    queue.delete(guild.id);
-    return serverQueue.textChannel.send(MSG_QUEUE_EMPTY);
-  }
-
-  try {
-    const foundSong = await ytdl(song.url, { filter: 'audioonly' });
-    const ttsStream = await ttsLead(message, song.title); // Get a lead in from the "DJ"
-
-    return serverQueue
-      .connection
-      .play(ttsStream)
-      .on('finish', () => {
-        const dispatcher = serverQueue
-          .connection
-          .play(foundSong)
-          .on('finish', async () => {
-            logger.info(MSG_FINISHED_PLAYING(song.title));
-            playlist.songs.pop();
-            await Playlist.findOneAndUpdate({ title: 'default' }, { songs: playlist.songs });
-            serverQueue.messages.shift();
-            playSong(playlist, serverQueue.messages[0], queue, serverQueue.songs[0], guild);
-          })
-          .on('error', async (e) => {
-            logger.error(MSG_YOUTUBE_ERROR);
-            logger.error('Dispatcher error: ', e);
-            // playlist.songs.pop();
-            // await Playlist.findOneAndUpdate({ title: 'default' }, { songs: playlist.songs });
-            // serverQueue.messages.shift();
-            playSong(playlist, serverQueue.messages[0], queue, serverQueue.songs[0], guild);
-          });
-
-        dispatcher.setVolume(DEFAULT_VOLUME);
-        serverQueue.textChannel.send(MSG_PLAYING(song.title));
-        return serverQueue.textChannel.send('', {
-          files: [song.img],
-        });
-      });
-  } catch (e) {
-    logger.error(e);
-    return serverQueue.textChannel.send(MSG_YOUTUBE_ERROR);
-  }
-};
 
 module.exports = async (params) => {
   const {
@@ -110,7 +61,10 @@ module.exports = async (params) => {
 
     queue.set(message.guild.id, queueConstruct);
     playlist.songs.push(song);
-    await Playlist.findOneAndUpdate({ title: 'default' }, { songs: playlist.songs });
+    await Playlist.findOneAndUpdate({ title: 'default' }, {
+      songs: playlist.songs,
+      // save message object
+    });
     queueConstruct.messages.push(message);
 
     const connection = await voiceChannel.join();
@@ -120,7 +74,10 @@ module.exports = async (params) => {
   }
 
   playlist.songs.push(song);
-  await Playlist.findOneAndUpdate({ title: 'default' }, { songs: playlist.songs });
+  await Playlist.findOneAndUpdate({ title: 'default' }, {
+    songs: playlist.songs
+    // save message object
+  });
   serverQueue.messages.push(message);
   return message.channel.send(MSG_ADDED_TO_QUEUE(song.title));
 };
