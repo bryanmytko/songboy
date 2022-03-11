@@ -6,8 +6,8 @@ const {
     MSG_YOUTUBE_ERROR,
     MSG_PLAYING,
     MSG_FINISHED_PLAYING,
-  } = require('../util/messages');
-const { ttsLead } = require('../util/tts');
+  } = require('./messages');
+const { ttsLead } = require('./tts');
 
 const playSong = async (playlist, message, queue, song, guild) => {
     const serverQueue = queue.get(guild.id);
@@ -57,4 +57,6 @@ const playSong = async (playlist, message, queue, song, guild) => {
     }
   };
 
-  export default playSong;
+  module.exports = {
+    playSong,
+  };
