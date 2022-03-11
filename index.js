@@ -26,7 +26,24 @@ db.once('open', () => logger.info('Database connected.'));
 
 Playlist.findOneAndUpdate({ title: 'default' }, { title: 'default' }).then((playlist) => {
   bot.login(process.env.DISCORD_BOT_TOKEN);
-  bot.on('ready', () => logger.info(MSG_CONNECTED));
+  bot.on('ready', () => {
+    if(playlist.songs.length) {
+      logger.info(MSG_RECONNECTED);
+      commands[song]({
+        playlist,
+        queue,
+        message: {
+          channel: 'saved text channel',
+          member: {
+            voice: {
+              channel: 'saved voice channel'
+            }
+          }
+        }
+      });
+    }
+    logger.info(MSG_CONNECTED)
+  });
 
   bot.on('message', async (message) => {
     if (!validMessage(message)) return;
