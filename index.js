@@ -10,6 +10,7 @@ const { commandRegex } = require('./src/util/regex');
 const { validMessage } = require('./src/util/validators');
 const commands = require('./src/commands');
 const Playlist = require('./src/models/playlist');
+const { initialLsCache } = require('pino/lib/levels');
 
 const MONGOOSE_URL = process.env.MONGO_URL;
 const bot = new Client();
@@ -26,20 +27,24 @@ db.once('open', () => logger.info('Database connected.'));
 
 Playlist.findOneAndUpdate({ title: 'default' }, { title: 'default' }).then((playlist) => {
   bot.login(process.env.DISCORD_BOT_TOKEN);
-  bot.on('ready', () => {
+  bot.on('ready', async () => {
+    if(!playlist) {
+      return Playlist({ title: 'default', songs: [] }).save();
+    }
+
     if(playlist.songs.length) {
       logger.info(MSG_RECONNECTED);
       commands.reconnect({
         playlist,
         queue,
         message: {
-          channel: 'saved text channel',
+          channel: playlist.message.channel,
           guild: {
-            id: 123
+            id: playlist.message.guild.id,
           },
           member: {
             voice: {
-              channel: 'saved voice channel'
+              channel: playlist.message.member.voice,
             }
           }
         }
@@ -55,7 +60,7 @@ Playlist.findOneAndUpdate({ title: 'default' }, { title: 'default' }).then((play
     const match = message.content.match(commandRegex);
     const command = match[1];
     const params = {
-      playlist,
+      playlist: playlist || [],
       queue,
       message,
       input: (match[2]) ? match[2].trim() : '',
