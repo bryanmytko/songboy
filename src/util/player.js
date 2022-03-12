@@ -7,6 +7,7 @@ const {
     MSG_PLAYING,
     MSG_FINISHED_PLAYING,
   } = require('./messages');
+const { DEFAULT_VOLUME } = require('../util/constants');
 const { ttsLead } = require('./tts');
 
 const playSong = async (playlist, message, queue, song, guild) => {
@@ -21,7 +22,7 @@ const playSong = async (playlist, message, queue, song, guild) => {
     try {
       const foundSong = await ytdl(song.url, { filter: 'audioonly' });
       const ttsStream = await ttsLead(message, song.title); // Get a lead in from the "DJ"
-  
+
       return serverQueue
         .connection
         .play(ttsStream)
@@ -44,7 +45,6 @@ const playSong = async (playlist, message, queue, song, guild) => {
               // serverQueue.messages.shift();
               playSong(playlist, serverQueue.messages[0], queue, serverQueue.songs[0], guild);
             });
-  
           dispatcher.setVolume(DEFAULT_VOLUME);
           serverQueue.textChannel.send(MSG_PLAYING(song.title));
           return serverQueue.textChannel.send('', {
@@ -53,6 +53,7 @@ const playSong = async (playlist, message, queue, song, guild) => {
         });
     } catch (e) {
       logger.error(e);
+      console.log(serverQueue)
       return serverQueue.textChannel.send(MSG_YOUTUBE_ERROR);
     }
   };
