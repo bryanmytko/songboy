@@ -10,6 +10,17 @@ const model = mongoose.Schema({
     title: String,
     img: String,
   }],
+  message: {
+    channel: String,
+    guild: {
+      id: Number,
+    },
+    member: {
+      voice: {
+        channel: String,
+      }
+    }
+  }
 });
 
 module.exports = new mongoose.model('Playlist', model);
