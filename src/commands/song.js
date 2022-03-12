@@ -16,6 +16,7 @@ const youtube = new YouTube(process.env.GOOGLE_API_KEY);
 const entities = new Entities();
 
 module.exports = async (params) => {
+  console.log('params', params)
   const {
     playlist,
     queue,
@@ -63,7 +64,17 @@ module.exports = async (params) => {
     playlist.songs.push(song);
     await Playlist.findOneAndUpdate({ title: 'default' }, {
       songs: playlist.songs,
-      // save message object
+      message: {
+        channel: message.channel,
+        guild: {
+          id: message.guild.id,
+        },
+        member: {
+          voice: {
+            channel: message.member.voice.channel,
+          }
+        }
+      }
     });
     queueConstruct.messages.push(message);
 
@@ -75,8 +86,18 @@ module.exports = async (params) => {
 
   playlist.songs.push(song);
   await Playlist.findOneAndUpdate({ title: 'default' }, {
-    songs: playlist.songs
-    // save message object
+    songs: playlist.songs,
+    message: {
+      channel: message.channel,
+      guild: {
+        id: message.guild.id,
+      },
+      member: {
+        voice: {
+          channel: member.voice.channel,
+        }
+      }
+    }
   });
   serverQueue.messages.push(message);
   return message.channel.send(MSG_ADDED_TO_QUEUE(song.title));
