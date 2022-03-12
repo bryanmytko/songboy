@@ -8,6 +8,7 @@ const client = new textToSpeech.TextToSpeechClient();
 const voicesPref = [26, 28, 39, 42];
 
 const ttsLead = async (message, song) => {
+  console.log('This message doesnt have a username');
   const name = message.author.username;
   const leads = TTS_LEADS(song, name);
   const text = leads[Math.floor(Math.random() * leads.length)];
