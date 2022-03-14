@@ -16,7 +16,6 @@ const youtube = new YouTube(process.env.GOOGLE_API_KEY);
 const entities = new Entities();
 
 module.exports = async (params) => {
-  console.log('params', params)
   const {
     playlist,
     queue,
@@ -88,6 +87,9 @@ module.exports = async (params) => {
   await Playlist.findOneAndUpdate({ title: 'default' }, {
     songs: playlist.songs,
     message: {
+      author: {
+        username: message.author.username,
+      },
       channel: message.channel,
       guild: {
         id: message.guild.id,
