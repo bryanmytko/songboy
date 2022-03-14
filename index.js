@@ -34,17 +34,24 @@ Playlist.findOneAndUpdate({ title: 'default' }, { title: 'default' }).then((play
 
     if(playlist.songs.length) {
       logger.info(MSG_RECONNECTED);
+
+      const channel = bot.channels.cache.get(playlist.message.channel);
+      const voice_channel = bot.channels.cache.get(playlist.message.member.voice);
+
       commands.reconnect({
         playlist,
         queue,
         message: {
-          channel: playlist.message.channel,
+          author: {
+            username: playlist.message.author.username,
+          },
+          channel,
           guild: {
             id: playlist.message.guild.id,
           },
           member: {
             voice: {
-              channel: playlist.message.member.voice,
+              channel: voice_channel,
             }
           }
         }
@@ -60,7 +67,7 @@ Playlist.findOneAndUpdate({ title: 'default' }, { title: 'default' }).then((play
     const match = message.content.match(commandRegex);
     const command = match[1];
     const params = {
-      playlist: playlist || [],
+      playlist: playlist || { songs: [] },
       queue,
       message,
       input: (match[2]) ? match[2].trim() : '',
