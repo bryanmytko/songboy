@@ -8,6 +8,7 @@ const {
     MSG_FINISHED_PLAYING,
   } = require('./messages');
 const { DEFAULT_VOLUME } = require('../util/constants');
+const Playlist = require('../models/playlist');
 const { ttsLead } = require('./tts');
 
 const playSong = async (playlist, message, queue, song, guild) => {
@@ -53,7 +54,6 @@ const playSong = async (playlist, message, queue, song, guild) => {
         });
     } catch (e) {
       logger.error(e);
-      console.log(serverQueue)
       return serverQueue.textChannel.send(MSG_YOUTUBE_ERROR);
     }
   };
