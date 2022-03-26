@@ -36,8 +36,7 @@ Playlist.findOneAndUpdate({ title: 'default' }, { title: 'default' }).then((play
       logger.info(MSG_RECONNECTED);
 
       const channel = bot.channels.cache.get(playlist.message.channel);
-      const voice_channel = bot.channels.cache.get(playlist.message.member.voice);
-
+      const voice_channel = bot.channels.cache.get(playlist.message.member.voice.channel);
       commands.reconnect({
         playlist,
         queue,
