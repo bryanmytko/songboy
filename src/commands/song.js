@@ -11,6 +11,7 @@ const { sanitizeParams } = require('../util/sanitizers');
 const { validVoiceChannel } = require('../util/validators');
 const { playSong } = require('../util/player');
 const Playlist = require('../models/playlist');
+const { ttsLead } = require('../util/tts');
 
 const youtube = new YouTube(process.env.GOOGLE_API_KEY);
 const entities = new Entities();
@@ -80,7 +81,9 @@ module.exports = async (params) => {
     const connection = await voiceChannel.join();
     queueConstruct.connection = connection;
 
-    return playSong(playlist, message, queue, queueConstruct.songs[0], message.guild);
+    const ttsStream = await ttsLead(message, song.title); // Get a lead in from the "DJ"
+
+    return playSong(playlist, message, queue, queueConstruct.songs[0], message.guild, ttsStream);
   }
 
   playlist.songs.push(song);
@@ -96,7 +99,7 @@ module.exports = async (params) => {
       },
       member: {
         voice: {
-          channel: member.voice.channel,
+          channel: message.member.voice.channel,
         }
       }
     }
