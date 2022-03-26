@@ -9,21 +9,23 @@ const {
   } = require('./messages');
 const { DEFAULT_VOLUME } = require('../util/constants');
 const Playlist = require('../models/playlist');
-const { ttsLead } = require('./tts');
 
-const playSong = async (playlist, message, queue, song, guild) => {
+const playSong = async (playlist, message, queue, song, guild, ttsStream) => {
     const serverQueue = queue.get(guild.id);
   
-    if (!song) {
+    if(!song) {
       serverQueue.voiceChannel.leave();
       queue.delete(guild.id);
       return serverQueue.textChannel.send(MSG_QUEUE_EMPTY);
     }
+
+    if(!serverQueue.connection) {
+      const connection = await message.member.voice.channel.join();
+      serverQueue.connection = connection;
+    }
   
     try {
       const foundSong = await ytdl(song.url, { filter: 'audioonly' });
-      const ttsStream = await ttsLead(message, song.title); // Get a lead in from the "DJ"
-
       return serverQueue
         .connection
         .play(ttsStream)
