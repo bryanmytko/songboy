@@ -6,6 +6,8 @@ const { VOICES } = require('./constants');
 
 const client = new textToSpeech.TextToSpeechClient();
 const voicesPref = [26, 28, 39, 42];
+const defaultVoices = VOICES[voicesPref[Math.floor(Math.random() * voicesPref.length)]];
+const audioConfig = { audioEncoding: 'MP3', speakingRate: 1.0 };
 
 const ttsLead = async (message, song) => {
   const name = message.author.username || '';
@@ -14,26 +16,24 @@ const ttsLead = async (message, song) => {
 
   const request = {
     input: { text },
-    voice: VOICES[voicesPref[Math.floor(Math.random() * voicesPref.length)]],
-    audioConfig: { audioEncoding: 'MP3', speakingRate: 1.0 },
+    voice: defaultVoices,
+    audioConfig,
   };
 
-  const [response] = await client.synthesizeSpeech(request);
-  const stream = new Readable();
-  stream.push(response.audioContent);
-  stream.push(null);
-
-  return stream;
+  return synthesizedSpeechStream(request);
 };
 
-/* @TODO Refactor this / DRY it out */
 const ttsReconnectLead = async () => {
   const request = {
     input: { text: 'Holy shit, I just reconnected and boy are my arms tired.' },
-    voice: VOICES[voicesPref[Math.floor(Math.random() * voicesPref.length)]],
-    audioConfig: { audioEncoding: 'MP3', speakingRate: 1.0 },
+    voice: defaultVoices,
+    audioConfig,
   };
 
+  return synthesizedSpeechStream(request)
+}
+
+const synthesizedSpeechStream = async request => {
   const [response] = await client.synthesizeSpeech(request);
   const stream = new Readable();
   stream.push(response.audioContent);
