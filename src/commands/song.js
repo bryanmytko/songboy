@@ -16,13 +16,13 @@ const { ttsLead } = require('../util/tts');
 const youtube = new YouTube(process.env.GOOGLE_API_KEY);
 const entities = new Entities();
 
-module.exports = async (params) => {
+module.exports = async params => {
   const {
-    playlist,
     queue,
     message,
     input,
   } = params;
+  const playlist = await Playlist.findOne({ title: 'default' });
   const textChannel = message.channel;
 
   if (!validVoiceChannel(message)) return textChannel.send(MSG_INVALID_VOICE_CHANNEL);
