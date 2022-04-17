@@ -9,6 +9,7 @@ const {
   } = require('./messages');
 const { DEFAULT_VOLUME } = require('../util/constants');
 const Playlist = require('../models/playlist');
+const { ttsLead } = require('../util/tts');
 
 const playSong = async (playlist, message, queue, song, guild, ttsStream) => {
     const serverQueue = queue.get(guild.id);
@@ -35,10 +36,14 @@ const playSong = async (playlist, message, queue, song, guild, ttsStream) => {
             .play(foundSong)
             .on('finish', async () => {
               logger.info(MSG_FINISHED_PLAYING(song.title));
-              playlist.songs.pop();
-              await Playlist.findOneAndUpdate({ title: 'default' }, { songs: playlist.songs });
+              console.log('before', playlist.songs)
+              //playlist.songs.pop();
+              console.log('after', playlist.songs)
+              await Playlist.findOneAndUpdate({ title: 'default' }, { $pop: { songs: 1 }} );
               serverQueue.messages.shift();
-              playSong(playlist, serverQueue.messages[0], queue, serverQueue.songs[0], guild);
+              const ttsStream = await ttsLead(message, song.title);
+
+              playSong(playlist, serverQueue.messages[0], queue, serverQueue.songs[0], guild, ttsStream);
             })
             .on('error', async (e) => {
               logger.error(MSG_YOUTUBE_ERROR);
