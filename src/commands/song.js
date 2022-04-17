@@ -44,6 +44,7 @@ module.exports = async params => {
   }
 
   const song = {
+    requester: message.author.username,
     url: `${YOUTUBE_WATCH_URL}${results[0].id}`,
     title: entities.decode(results[0].title),
     img: results[0].thumbnails.high.url,
@@ -54,17 +55,20 @@ module.exports = async params => {
       textChannel,
       voiceChannel,
       connection: null,
-      songs: playlist.songs,
+      songs: playlist.songs, // @TODO i think this is deprecated fully now
       messages: [],
       volume: DEFAULT_VOLUME,
       playing: true,
     };
 
     queue.set(message.guild.id, queueConstruct);
-    playlist.songs.push(song);
+    //playlist.songs.push(song);
     await Playlist.findOneAndUpdate({ title: 'default' }, {
-      songs: playlist.songs,
+      songs: [...playlist.songs, song],
       message: {
+        author: {
+          username: message.author.username, // @TODO do we use this anymore
+        },
         channel: message.channel,
         guild: {
           id: message.guild.id,
@@ -83,7 +87,7 @@ module.exports = async params => {
 
     const ttsStream = await ttsLead(message, song.title); // Get a lead in from the "DJ"
 
-    return playSong(playlist, message, queue, queueConstruct.songs[0], message.guild, ttsStream);
+    return playSong(message, queue, song, message.guild, ttsStream);
   }
 
   playlist.songs.push(song);
@@ -91,7 +95,7 @@ module.exports = async params => {
     songs: playlist.songs,
     message: {
       author: {
-        username: message.author.username,
+        username: message.author.username, // @TODO do we use this anymore?
       },
       channel: message.channel,
       guild: {
