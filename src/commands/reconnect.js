@@ -21,5 +21,5 @@ module.exports = async (params) => {
 
   logger.info('Reconnecting and resuming playlist.');
 
-  return playSong(playlist, message, queue, queueConstruct.songs[0], message.guild, ttsLead);
+  return playSong(message, queue, playlist.songs[0], message.guild, ttsLead);
 };
