@@ -9,8 +9,7 @@ const voicesPref = [26, 28, 39, 42];
 const defaultVoices = VOICES[voicesPref[Math.floor(Math.random() * voicesPref.length)]];
 const audioConfig = { audioEncoding: 'MP3', speakingRate: 1.0 };
 
-const ttsLead = async (message, song) => {
-  const name = message.author.username || '';
+const ttsLead = async (name = '', song) => {
   const leads = TTS_LEADS(song, name);
   const text = leads[Math.floor(Math.random() * leads.length)];
 
