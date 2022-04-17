@@ -6,6 +6,7 @@ const model = mongoose.Schema({
     required: true,
   },
   songs: [{
+    requester: String,
     url: String,
     title: String,
     img: String,
