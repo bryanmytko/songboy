@@ -65,9 +65,6 @@ const reconnectParams = (playlist, bot) => {
     playlist,
     queue,
     message: {
-      author: {
-        username: playlist.message.author.username,
-      },
       channel,
       guild: {
         id: playlist.message.guild.id,
