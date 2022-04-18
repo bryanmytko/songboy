@@ -12,9 +12,6 @@ const model = mongoose.Schema({
     img: String,
   }],
   message: {
-    author: {
-      username: String,
-    },
     channel: String,
     guild: {
       id: Number,
