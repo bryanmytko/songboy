@@ -55,20 +55,15 @@ module.exports = async params => {
       textChannel,
       voiceChannel,
       connection: null,
-      songs: playlist.songs, // @TODO i think this is deprecated fully now
       messages: [],
       volume: DEFAULT_VOLUME,
       playing: true,
     };
 
     queue.set(message.guild.id, queueConstruct);
-    //playlist.songs.push(song);
     await Playlist.findOneAndUpdate({ title: 'default' }, {
       songs: [...playlist.songs, song],
       message: {
-        author: {
-          username: message.author.username, // @TODO do we use this anymore
-        },
         channel: message.channel,
         guild: {
           id: message.guild.id,
@@ -94,9 +89,6 @@ module.exports = async params => {
   await Playlist.findOneAndUpdate({ title: 'default' }, {
     songs: playlist.songs,
     message: {
-      author: {
-        username: message.author.username, // @TODO do we use this anymore?
-      },
       channel: message.channel,
       guild: {
         id: message.guild.id,
