@@ -10,13 +10,13 @@ module.exports = async params => {
   if(!playlist) return;
   if(!playlist.songs) return message.channel.send(MSG_SKIP_FAIL);
 
-  const skipped = playlist.songs[playlist.songs.length - 1];
+  const skipped = playlist.songs[0];
+  const updated = await Playlist.findOneAndUpdate({ title: 'default' }, { $pop: { songs: -1 } }, { new: true });
 
-  await Playlist.findOneAndUpdate({ title: 'default' }, { $pop: { songs: 1 } }, { new: true });
-
-  /* Currently sort of working. Skips the song but still nuking the playlist */
+  /* Its removing first AND last song. db call returns correct so
+    the dispatcher end is removing last song somewhere */  
   try {
-    for (const value of queue.values()) value.connection.dispatcher.end();
+   /// for (const value of queue.values()) value.connection.dispatcher.end();
     message.channel.send(MSG_SKIP(skipped.title));
   } catch (e) {
     logger.error(e);
