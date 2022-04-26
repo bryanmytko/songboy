@@ -38,7 +38,7 @@ const playSong = async (message, queue, song, guild, ttsStream) => {
               logger.info(MSG_FINISHED_PLAYING(song.title));
               const updatedPlaylist = await Playlist
                 .findOneAndUpdate({ title: 'default' }, { $pop: { songs: 1 } }, { new: true });
-              const ttsStream = await ttsLead(song.requester, song.title);
+              const ttsStream = await ttsLead(song.title, song.requester);
 
               playSong(serverQueue.messages[0], queue, updatedPlaylist.songs[0], guild, ttsStream);
             })

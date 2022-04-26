@@ -16,6 +16,7 @@ module.exports = {
   MSG_QUEUE_CURRENT: (songs) => `Current queue: \n${songs}`,
   MSG_SKIP_FAIL: 'No songs to skip. Queue is empty!',
   MSG_SKIP: (song) => `Song Boy is skipping ${song}.`,
+  TTS_RECONNECT: 'Holy shit, I just reconnected and boy are my arms tired.',
   TTS_LEADS: (song, name) => [
     `This one goes out to ${name}. Here's ${song}`,
     `${name} has requested ${song}, so let's take that one for a spin.`,
