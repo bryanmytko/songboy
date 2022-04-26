@@ -80,7 +80,7 @@ module.exports = async params => {
     const connection = await voiceChannel.join();
     queueConstruct.connection = connection;
 
-    const ttsStream = await ttsLead(message, song.title); // Get a lead in from the "DJ"
+    const ttsStream = await ttsLead(song.title, song.requester); // Get a lead in from the "DJ"
 
     return playSong(message, queue, song, message.guild, ttsStream);
   }
