@@ -10,7 +10,6 @@ const { commandRegex } = require('./src/util/regex');
 const { validMessage } = require('./src/util/validators');
 const commands = require('./src/commands');
 const Playlist = require('./src/models/playlist');
-const { initialLsCache } = require('pino/lib/levels');
 
 const MONGOOSE_URL = process.env.MONGO_URL;
 const bot = new Client();
