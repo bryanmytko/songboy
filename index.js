@@ -31,11 +31,11 @@ bot.on('ready', async () => {
   if(!playlist) return Playlist({ title: 'default', songs: [] }).save();
 
   if(playlist.songs && playlist.songs.length) {
-    commands.reconnect(reconnectParams(playlist, bot));
     logger.info(MSG_RECONNECTED);
-  } else {
-    logger.info(MSG_CONNECTED);
+    return commands.reconnect(reconnectParams(playlist, bot));
   }
+
+  logger.info(MSG_CONNECTED);
 });
 
 bot.on('message', async (message) => {
