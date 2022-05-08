@@ -10,6 +10,7 @@ const model = mongoose.Schema({
     url: String,
     title: String,
     img: String,
+    source: String,
   }],
   message: {
     channel: String,

@@ -1,5 +1,6 @@
+exports.queue = require('./queue');
+exports.random = require('./random');
+exports.reconnect = require('./reconnect');
+exports.skip = require('./skip');
 exports.song = require('./song');
 exports.stop = require('./stop');
-exports.queue = require('./queue');
-exports.skip = require('./skip');
-exports.reconnect = require('./reconnect');
