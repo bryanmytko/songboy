@@ -1,7 +1,7 @@
 const textToSpeech = require('@google-cloud/text-to-speech');
 const { Readable } = require('stream');
 
-const { TTS_LEADS, TTS_RECONNECT } = require('./messages');
+const { TTS_LEADS, TTS_RANDOM, TTS_RECONNECT } = require('./messages');
 const { VOICES } = require('./constants');
 
 const client = new textToSpeech.TextToSpeechClient();
@@ -9,9 +9,16 @@ const voicesPref = [26, 28, 39, 42, 43, 27, 34, 35];
 const defaultVoices = VOICES[voicesPref[Math.floor(Math.random() * voicesPref.length)]];
 const audioConfig = { audioEncoding: 'MP3', speakingRate: 1.0 };
 
-const ttsLead = async (song, name = '') => {
-  const leads = TTS_LEADS(song, name);
-  const text = leads[Math.floor(Math.random() * leads.length)];
+const ttsLead = async song => {
+  let text;
+  const name = song.requester || '';
+  const leads = TTS_LEADS(song.title, name);
+  
+  if(song.source === 'random') {
+    text = TTS_RANDOM(song);
+  } else {
+    text = leads[Math.floor(Math.random() * leads.length)];
+  }
 
   const request = {
     input: { text },
