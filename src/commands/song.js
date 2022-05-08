@@ -11,7 +11,6 @@ const { sanitizeParams } = require('../util/sanitizers');
 const { validVoiceChannel } = require('../util/validators');
 const { playSong } = require('../util/player');
 const Playlist = require('../models/playlist');
-const { ttsLead } = require('../util/tts');
 
 const youtube = new YouTube(process.env.GOOGLE_API_KEY);
 const entities = new Entities();
@@ -22,6 +21,7 @@ module.exports = async params => {
     message,
     input,
   } = params;
+  const source = params.source || 'request';
   const playlist = await Playlist.findOne({ title: 'default' });
   const textChannel = message.channel;
 
@@ -48,6 +48,7 @@ module.exports = async params => {
     url: `${YOUTUBE_WATCH_URL}${results[0].id}`,
     title: entities.decode(results[0].title),
     img: results[0].thumbnails.high.url,
+    source,
   };
 
   if (!serverQueue) {
@@ -80,9 +81,7 @@ module.exports = async params => {
     const connection = await voiceChannel.join();
     queueConstruct.connection = connection;
 
-    const ttsStream = await ttsLead(song.title, song.requester); // Get a lead in from the "DJ"
-
-    return playSong(message, queue, song, message.guild, ttsStream);
+    return playSong(message, queue, song, message.guild);
   }
 
   playlist.songs.push(song);
