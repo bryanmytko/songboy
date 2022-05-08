@@ -9,12 +9,11 @@ module.exports = async params => {
   const playlist = await Playlist.findOne({ title: 'default' });
 
   try {
-    if (!playlist.songs) {
-      message.channel.send(MSG_QUEUE_EMPTY);
-    } else {
+    if (playlist.songs && playlist.songs.length) {
       const songs = playlist.songs.map((s, i) => `${i + 1}. ${s.title}`).join('\n');
-      message.channel.send(MSG_QUEUE_CURRENT(songs));
+      return message.channel.send(MSG_QUEUE_CURRENT(songs));
     }
+    return message.channel.send(MSG_QUEUE_EMPTY);
   } catch (e) {
     logger.error(e);
   }
