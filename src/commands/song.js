@@ -1,68 +1,28 @@
-const ytdl = require('ytdl-core');
 const logger = require('pino')({ prettyPrint: true });
 const YouTube = require('simple-youtube-api');
 const Entities = require('html-entities').XmlEntities;
 
 const {
-  MSG_ADDED_TO_QUEUE, MSG_INVALID_VOICE_CHANNEL, MSG_QUEUE_EMPTY,
-  MSG_YOUTUBE_ERROR, MSG_YOUTUBE_NOT_FOUND, MSG_PLAYING, MSG_FINISHED_PLAYING,
+  MSG_ADDED_TO_QUEUE, MSG_INVALID_VOICE_CHANNEL,
+  MSG_YOUTUBE_ERROR, MSG_YOUTUBE_NOT_FOUND,
 } = require('../util/messages');
 const { DEFAULT_VOLUME, YOUTUBE_WATCH_URL } = require('../util/constants');
 const { sanitizeParams } = require('../util/sanitizers');
 const { validVoiceChannel } = require('../util/validators');
+const { playSong } = require('../util/player');
+const Playlist = require('../models/playlist');
 const { ttsLead } = require('../util/tts');
 
 const youtube = new YouTube(process.env.GOOGLE_API_KEY);
 const entities = new Entities();
 
-const playSong = async (message, queue, song, guild) => {
-  const serverQueue = queue.get(guild.id);
-
-  if (!song) {
-    serverQueue.voiceChannel.leave();
-    queue.delete(guild.id);
-    return serverQueue.textChannel.send(MSG_QUEUE_EMPTY);
-  }
-
-  try {
-    const foundSong = await ytdl(song.url, { filter: 'audioonly' });
-    const ttsStream = await ttsLead(message, song.title); // Get a lead in from the "DJ"
-
-    return serverQueue
-      .connection
-      .play(ttsStream)
-      .on('finish', () => {
-        const dispatcher = serverQueue
-          .connection
-          .play(foundSong)
-          .on('finish', () => {
-            logger.info(MSG_FINISHED_PLAYING(song.title));
-            serverQueue.songs.shift();
-            serverQueue.messages.shift();
-            playSong(serverQueue.messages[0], queue, serverQueue.songs[0], guild);
-          })
-          .on('error', (e) => {
-            logger.error(MSG_YOUTUBE_ERROR);
-            logger.error('Dispatcher error: ', e);
-            serverQueue.songs.shift();
-            serverQueue.messages.shift();
-            playSong(serverQueue.messages[0], queue, serverQueue.songs[0], guild);
-          });
-
-        dispatcher.setVolume(DEFAULT_VOLUME);
-        serverQueue.textChannel.send(MSG_PLAYING(song.title));
-        return serverQueue.textChannel.send('', {
-          files: [song.img],
-        });
-      });
-  } catch (e) {
-    logger.error(e);
-    return serverQueue.textChannel.send(MSG_YOUTUBE_ERROR);
-  }
-};
-
-module.exports = async (params) => {
-  const { queue, message, input } = params;
+module.exports = async params => {
+  const {
+    queue,
+    message,
+    input,
+  } = params;
+  const playlist = await Playlist.findOne({ title: 'default' });
   const textChannel = message.channel;
 
   if (!validVoiceChannel(message)) return textChannel.send(MSG_INVALID_VOICE_CHANNEL);
@@ -84,6 +44,7 @@ module.exports = async (params) => {
   }
 
   const song = {
+    requester: message.author.username,
     url: `${YOUTUBE_WATCH_URL}${results[0].id}`,
     title: entities.decode(results[0].title),
     img: results[0].thumbnails.high.url,
@@ -94,23 +55,51 @@ module.exports = async (params) => {
       textChannel,
       voiceChannel,
       connection: null,
-      songs: [],
       messages: [],
       volume: DEFAULT_VOLUME,
       playing: true,
     };
 
     queue.set(message.guild.id, queueConstruct);
-    queueConstruct.songs.push(song);
+    await Playlist.findOneAndUpdate({ title: 'default' }, {
+      songs: [...playlist.songs, song],
+      message: {
+        channel: message.channel,
+        guild: {
+          id: message.guild.id,
+        },
+        member: {
+          voice: {
+            channel: message.member.voice.channel,
+          }
+        }
+      }
+    });
     queueConstruct.messages.push(message);
 
     const connection = await voiceChannel.join();
     queueConstruct.connection = connection;
 
-    return playSong(message, queue, queueConstruct.songs[0], message.guild);
+    const ttsStream = await ttsLead(song.title, song.requester); // Get a lead in from the "DJ"
+
+    return playSong(message, queue, song, message.guild, ttsStream);
   }
 
-  serverQueue.songs.push(song);
+  playlist.songs.push(song);
+  await Playlist.findOneAndUpdate({ title: 'default' }, {
+    songs: playlist.songs,
+    message: {
+      channel: message.channel,
+      guild: {
+        id: message.guild.id,
+      },
+      member: {
+        voice: {
+          channel: message.member.voice.channel,
+        }
+      }
+    }
+  });
   serverQueue.messages.push(message);
   return message.channel.send(MSG_ADDED_TO_QUEUE(song.title));
 };

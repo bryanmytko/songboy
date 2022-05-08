@@ -1,17 +1,22 @@
 const logger = require('pino')({ prettyPrint: true });
 
 const { MSG_SKIP, MSG_SKIP_FAIL } = require('../util/messages');
+const Playlist = require('../models/playlist');
 
-module.exports = async (params) => {
+module.exports = async params => {
   const { queue, message } = params;
-  const serverQueue = queue.get(message.guild.id);
+  const playlist = await Playlist.findOne({ title: 'default' });
 
-  if (!serverQueue) return;
-  if (!serverQueue.songs.length) serverQueue.textChannel.send(MSG_SKIP_FAIL);
+  if(!playlist || !playlist.songs) return;
+  if(!playlist.songs.length) return message.channel.send(MSG_SKIP_FAIL);
 
+  const skipped = playlist.songs[0];
+  
   try {
-    serverQueue.textChannel.send(MSG_SKIP(serverQueue.songs[0].title));
-    serverQueue.connection.dispatcher.end();
+    for (const value of queue.values()) {
+      value.connection && value.connection.dispatcher.end();
+    }
+    message.channel.send(MSG_SKIP(skipped.title));
   } catch (e) {
     logger.error(e);
   }

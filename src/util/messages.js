@@ -1,6 +1,7 @@
 module.exports = {
   MSG_NON_VALID_URL: 'That does not seem to be a valid URL pogChamp. Searching anyway...',
   MSG_CONNECTED: 'Song Boy has connected!',
+  MSG_RECONNECTED: 'Song Boy has reconnected. Phew!',
   MSG_DISCONNECTED: 'Song Boy has been disconnected. This is probably not a good thing.',
   MSG_INVALID_COMMAND: (command) => `:skull: That is not a valid command: \`!${command}\` :skull:`,
   MSG_INVALID_CHANNEL: 'Try using one of the acceptable Song Boy channels!',
@@ -15,6 +16,7 @@ module.exports = {
   MSG_QUEUE_CURRENT: (songs) => `Current queue: \n${songs}`,
   MSG_SKIP_FAIL: 'No songs to skip. Queue is empty!',
   MSG_SKIP: (song) => `Song Boy is skipping ${song}.`,
+  TTS_RECONNECT: 'Holy shit, I just reconnected and boy are my arms tired.',
   TTS_LEADS: (song, name) => [
     `This one goes out to ${name}. Here's ${song}`,
     `${name} has requested ${song}, so let's take that one for a spin.`,
@@ -31,7 +33,7 @@ module.exports = {
     `Another cordwainer anthem coming right up, here's ${song}`,
     `Here's another treasure straight from your Horadric cube, none other than ${song}`,
     `${name} must be wainin' because that's the only time I'd expect to hear ${song}`,
-    `${name} that's the perfect soundtrack for dropping a big tier three sub to Amouranth, here's ${song}`,
+    `${name} that's the perfect soundtrack for dropping a big tier three sub to pink Q.T. here's ${song}`,
     `${name}? Nut. ${song}`,
     `Here's DMX with Ruff Ryders... just kidding: this one is called ${song}`,
     `Here's a double you straight outta Ragnaros, nada menos que la cancion de exito ${song}`,
@@ -40,11 +42,11 @@ module.exports = {
     `Thanks, ${name}, now everyone will hate you`,
     `This little ditty goes out to Pumpkin Spice Bryce. Here is ${song}`,
     `Get out your motion lotion for this jam. This is ${song}`,
-    `Let me mansplain ${song} to you... oh wait, here's ${name} to do it for me`,
     `Here comes another piece of arthouse hipster bullshit from ${name}`,
     'Welp. At least it isn\'t nickleback',
     'Anyway, here\'s Wonderwall...',
     `Here's ${song}. Enjoy your music, Boomer.`,
     'Meredith, I’m worried that the baby thinks people can’t change...',
+    `Sup y'all, it's me, it's ya boy ${name}.`
   ],
 };
