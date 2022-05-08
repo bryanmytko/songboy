@@ -30,7 +30,7 @@ bot.on('ready', async () => {
   const playlist = await Playlist.findOneAndUpdate({ title: 'default' }, { title: 'default' });
   if(!playlist) return Playlist({ title: 'default', songs: [] }).save();
 
-  if(playlist.songs) {
+  if(playlist.songs && playlist.songs.length) {
     commands.reconnect(reconnectParams(playlist, bot));
     logger.info(MSG_RECONNECTED);
   } else {
