@@ -1,11 +1,11 @@
 const logger = require('pino')({ prettyPrint: true });
 
 const { DEFAULT_VOLUME } = require('../util/constants');
-const { playSong } = require('../util/player');
-const { ttsReconnectLead } = require('../util/tts');
+const Player = require('../util/player');
 
 module.exports = async (params) => {
   const { playlist, message, queue } = params;
+  params.source = 'reconnect';
   const queueConstruct = {
     textChannel: message.channel,
     voiceChannel: message.member.voice.channel,
@@ -16,10 +16,10 @@ module.exports = async (params) => {
     playing: true,
   };
 
-  const ttsLead = await ttsReconnectLead();
   queue.set(message.guild.id, queueConstruct);
 
   logger.info('Reconnecting and resuming playlist.');
 
-  return playSong(message, queue, playlist.songs[0], message.guild, ttsLead);
+  return Player.addSong(params);
+  //playSong(message, queue, playlist.songs[0], message.guild, ttsLead);
 };
