@@ -32,7 +32,7 @@ bot.on('ready', async () => {
 
   if(playlist.songs && playlist.songs.length) {
     logger.info(MSG_RECONNECTED);
-    return commands.reconnect(reconnectParams(playlist, bot));
+  //  return commands.reconnect(reconnectParams(playlist, bot));
   }
 
   logger.info(MSG_CONNECTED);
