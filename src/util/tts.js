@@ -10,15 +10,9 @@ const defaultVoices = VOICES[voicesPref[Math.floor(Math.random() * voicesPref.le
 const audioConfig = { audioEncoding: 'MP3', speakingRate: 1.0 };
 
 const ttsLead = async song => {
-  let text;
   const name = song.requester || '';
   const leads = TTS_LEADS(song.title, name);
-  
-  if(song.source === 'random') {
-    text = TTS_RANDOM(song);
-  } else {
-    text = leads[Math.floor(Math.random() * leads.length)];
-  }
+  const text = leads[Math.floor(Math.random() * leads.length)];
 
   const request = {
     input: { text },
@@ -29,6 +23,17 @@ const ttsLead = async song => {
   return synthesizedSpeechStream(request);
 };
 
+const ttsRandom = async song => {
+  console.log('song', song)
+  const request = {
+    input: { text: TTS_RANDOM(song) },
+    voice: defaultVoices,
+    audioConfig,
+  };
+
+  return synthesizedSpeechStream(request)
+}
+
 const ttsReconnectLead = async () => {
   const request = {
     input: { text: TTS_RECONNECT },
@@ -37,7 +42,7 @@ const ttsReconnectLead = async () => {
   };
 
   return synthesizedSpeechStream(request)
-}
+};
 
 const synthesizedSpeechStream = async request => {
   const [response] = await client.synthesizeSpeech(request);
@@ -46,9 +51,10 @@ const synthesizedSpeechStream = async request => {
   stream.push(null);
 
   return stream;
-}
+};
 
 module.exports = {
   ttsLead,
+  ttsRandom,
   ttsReconnectLead
 };
