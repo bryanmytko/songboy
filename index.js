@@ -13,7 +13,7 @@ const Playlist = require('./src/models/playlist');
 
 const MONGOOSE_URL = process.env.MONGO_URL;
 const bot = new Client();
-const queue = new Map();
+const state = new Map();
 
 mongoose.connect(`${MONGOOSE_URL}`, {
   useNewUrlParser: true,
@@ -44,7 +44,7 @@ bot.on('message', async (message) => {
   const match = message.content.match(commandRegex);
   const command = match[1];
   const params = {
-    queue,
+    state,
     message,
     input: (match[2]) ? match[2].trim() : '',
   };
@@ -62,7 +62,7 @@ const reconnectParams = (playlist, bot) => {
 
   return {
     playlist,
-    queue,
+    state,
     message: {
       channel,
       guild: {
