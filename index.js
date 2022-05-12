@@ -40,6 +40,7 @@ bot.on('ready', async () => {
 
 bot.on('message', async (message) => {
   if (!validMessage(message)) return;
+  if (bot.presence?.status !== 'online') return;
 
   const match = message.content.match(commandRegex);
   const command = match[1];
