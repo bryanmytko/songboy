@@ -82,9 +82,7 @@ class Player {
     const ttsLead = await this.getTTSLead(song);
     const audio = await ytdl(song.url, { filter: 'audioonly' });
     const playlist = await Playlist.findOne({ title: 'default' });
-    const connection = state.get('connection');
-    console.log('state', state)
-    console.log('connection', connection)
+    let connection = state.get('connection');
 
     await Playlist.findOneAndUpdate({ title: 'default' }, {
       songs: [...playlist.songs, song],
@@ -102,46 +100,45 @@ class Player {
     });
 
     if (!connection) {
-      const connection = await this.voiceChannel.join();
-      state.connection = connection;
-      console.log('new state', state)
+      connection = await this.voiceChannel.join();
+      state.set('connection', connection);
+    }
 
-      try {
-        return connection
-          .play(ttsLead)
-          .on('finish', () => {
-            const dispatcher = connection
-              .play(audio)
-              .on('finish', async () => {
-                logger.info(MSG_FINISHED_PLAYING(song.title));
-  
-                const updatedPlaylist = await Playlist
-                  .findOneAndUpdate({ title: 'default' }, { $pop: { songs: -1 } }, { new: true });
-                const newSong = updatedPlaylist.songs[0];
-                await this.saveHistory(song);
-  
-                if(newSong) return playSong(newSong);
-  
-                logger.info(MSG_FINISHED_PLAYING(song.title));
-                this.voiceChannel.leave();
-                return this.textChannel.send(MSG_QUEUE_EMPTY);
-              })
-              .on('error', async (e) => {
-                logger.error(MSG_YOUTUBE_ERROR);
-                logger.error('Dispatcher error: ', e);
-                throw new Error('Dispatcher error!');
-              });
-  
-            dispatcher.setVolume(DEFAULT_VOLUME);
-            this.textChannel.send(MSG_PLAYING(song.title));
-            return this.textChannel.send('', {
-              files: [song.img],
+    try {
+      return connection
+        .play(ttsLead)
+        .on('finish', () => {
+          const dispatcher = connection
+            .play(audio)
+            .on('finish', async () => {
+              logger.info(MSG_FINISHED_PLAYING(song.title));
+              await this.saveHistory(song);
+
+              const updatedPlaylist = await Playlist
+                .findOneAndUpdate({ title: 'default' }, { $pop: { songs: -1 } }, { new: true });
+              const newSong = updatedPlaylist.songs[0];
+
+              if(newSong) return this.play(newSong, state);
+
+              logger.info(MSG_FINISHED_PLAYING(song.title));
+              this.voiceChannel.leave();
+              return this.textChannel.send(MSG_QUEUE_EMPTY);
+            })
+            .on('error', async (e) => {
+              logger.error(MSG_YOUTUBE_ERROR);
+              logger.error('Dispatcher error: ', e);
+              throw new Error('Dispatcher error!');
             });
+
+          dispatcher.setVolume(DEFAULT_VOLUME);
+          this.textChannel.send(MSG_PLAYING(song.title));
+          return this.textChannel.send('', {
+            files: [song.img],
           });
-      } catch (e) {
-        logger.error(e);
-        return this.textChannel.send(MSG_YOUTUBE_ERROR);
-      }
+        });
+    } catch (e) {
+      logger.error(e);
+      return this.textChannel.send(MSG_YOUTUBE_ERROR);
     }
 
     if (playlist.songs.length) this.textChannel.send(MSG_ADDED_TO_QUEUE(song.title));
