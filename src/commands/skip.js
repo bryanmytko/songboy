@@ -4,7 +4,7 @@ const { MSG_SKIP, MSG_SKIP_FAIL } = require('../util/messages');
 const Playlist = require('../models/playlist');
 
 module.exports = async params => {
-  const { queue, message } = params;
+  const { state, message } = params;
   const playlist = await Playlist.findOne({ title: 'default' });
 
   if(!playlist || !playlist.songs) return;
@@ -13,9 +13,9 @@ module.exports = async params => {
   const skipped = playlist.songs[0];
   
   try {
-    for (const value of queue.values()) {
-      value.connection && value.connection.dispatcher.end();
-    }
+    const connection = state.get('connection');
+
+    connection.player.dispatcher.end();
     message.channel.send(MSG_SKIP(skipped.title));
   } catch (e) {
     logger.error(e);
