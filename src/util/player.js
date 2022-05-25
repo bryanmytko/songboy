@@ -120,7 +120,6 @@ class Player {
 
               if(newSong) return this.play(newSong, state);
 
-              logger.info(MSG_FINISHED_PLAYING(song.title));
               this.voiceChannel.leave();
               return this.textChannel.send(MSG_QUEUE_EMPTY);
             })
