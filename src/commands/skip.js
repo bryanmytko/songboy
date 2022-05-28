@@ -14,7 +14,7 @@ module.exports = async params => {
   
   try {
     for (const value of queue.values()) {
-      value.connection && value.connection.dispatcher.end();
+      value.connection && value.connection?.dispatcher.end();
     }
     message.channel.send(MSG_SKIP(skipped.title));
   } catch (e) {
