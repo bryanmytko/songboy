@@ -32,6 +32,8 @@ module.exports = async params => {
   const cleanParams = sanitizeParams(input);
   let results;
 
+  if(!voiceChannel.joinable) return;
+
   try {
     results = await youtube.searchVideos(cleanParams, 1);
   } catch (e) {

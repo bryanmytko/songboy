@@ -13,10 +13,13 @@ const Song = require('../models/song');
 const { ttsLead } = require('../util/tts');
 
 const playSong = async (message, queue, song, guild, ttsStream) => {
+  const { channel } = message.member.voice;
   const serverQueue = queue.get(guild.id);
 
+  if(!channel.joinable) return;
+
   if(!serverQueue.connection) {
-    const connection = await message.member.voice.channel.join();
+    const connection = await channel.join();
     serverQueue.connection = connection;
   }
 
