@@ -2,6 +2,10 @@
 
 Discord bot to play music.
 
+> __Warning__ This project is no longer in development
+
+> Version 2: [Songboy](https://github.com/bryanmytko/songboy2)
+
 ## Environment
 
 Create a `.env` or add to your environment:
